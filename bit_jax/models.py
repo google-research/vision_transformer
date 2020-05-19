@@ -51,8 +51,8 @@ class GroupNorm(nn.Module):
     x = x.reshape(input_shape)
 
     bias_scale_shape = tuple([1, 1, 1] + [input_shape[-1]])
-    x = x * self.param('scale', bias_scale_shape, nn.initializers.zeros)
-    x = x + self.param('bias', bias_scale_shape, nn.initializers.ones)
+    x = x * self.param('scale', bias_scale_shape, nn.initializers.ones)
+    x = x + self.param('bias', bias_scale_shape, nn.initializers.zeros)
     return x
 
 
