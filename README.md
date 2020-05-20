@@ -14,7 +14,7 @@ Make sure you have `Python>=3.6` installed on your machine.
 
 To setup [Tensorflow 2](https://github.com/tensorflow/tensorflow), [PyTorch](https://github.com/pytorch/pytorch) or [Jax](https://github.com/google/jax), follow the instructions provided in the corresponding repository linked here.
 
-In addition, install python depndencies by running (please select `tf2`, `pytorch` or `jax` in the command below):
+In addition, install python dependencies by running (please select `tf2`, `pytorch` or `jax` in the command below):
 ```
 pip install -r bit_{tf2|pytorch|jax}/requirements.txt
 ```
