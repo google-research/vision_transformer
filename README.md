@@ -8,6 +8,11 @@ We provide the code to fine-tuning the released models in the major deep learnin
 
 We hope that the computer vision community will benefit by employing more powerful ImageNet-21k pretrained models as opposed to conventional models pre-trained on the ILSVRC-2012 dataset.
 
+We also provide colabs for a more exploratory interactive use:
+a [TensorFlow 2 colab](https://colab.research.google.com/github/google-research/big_transfer/blob/master/colabs/big_transfer_tf2.ipynb),
+a [PyTorch colab](https://colab.research.google.com/github/google-research/big_transfer/blob/master/colabs/big_transfer_pytorch.ipynb),
+and a [Jax colab](https://colab.research.google.com/github/google-research/big_transfer/blob/master/colabs/big_transfer_jax.ipynb).
+
 ## Installation
 
 Make sure you have `Python>=3.6` installed on your machine.
@@ -40,6 +45,14 @@ Note that our code uses all available GPUs for fine-tuning.
 We also support training in the low-data regime: the `--examples_per_class <K>` option will randomly draw K samples per class for training.
 
 To see a detailed list of all available flags, run `python3 -m bit_{pytorch|jax|tf2}.train --help`.
+
+### Available architectures
+
+We release all architectures mentioned in the paper, such that you may choose between accuracy or speed: R50x1, R101x1, R50x3, R101x3, R152x4.
+In the above path to the model file, simply replace `R50x1` by your architecture of choice.
+
+We further investigated more architectures after the paper's publication and found R152x2 to have a nice trade-off between speed and accuracy, hence we also include this in the release and provide a few numbers below.
+
 
 ### Hyper-parameters
 
@@ -82,10 +95,23 @@ The table shows the min←**median**→max result of at least five runs.
 | :---     | :---:  |         :---:          |         :---:          |          :---:         |
 | CIFAR10  |   1    | 52.5 ← **55.8** → 60.2 | 48.7 ← **53.9** → 65.0 | 56.4 ← **56.7** → 73.1 |
 | CIFAR10  |   5    | 85.3 ← **87.2** → 89.1 | 80.2 ← **85.8** → 88.6 | 84.8 ← **85.8** → 89.6 |
-| CIFAR10  |  full  |        **98.5**        |        **98.4**        | WIP ← **WIP** → WIP |
+| CIFAR10  |  full  |        **98.5**        |        **98.4**        | 98.5 ← **98.6** → 98.6 |
 | CIFAR100 |   1    | 34.8 ← **35.7** → 37.9 | 32.1 ← **35.0** → 37.1 | 31.6 ← **33.8** → 36.9 |
 | CIFAR100 |   5    | 68.8 ← **70.4** → 71.4 | 68.6 ← **70.8** → 71.6 | 70.6 ← **71.6** → 71.7 |
-| CIFAR100 |  full  |        **WIP**         |        **91.2**        | 91.1 ← **91.2** → 91.4 |
+| CIFAR100 |  full  |        **90.8**        |        **91.2**        | 91.1 ← **91.2** → 91.4 |
+
+#### BiT-M-R152x2
+
+| Dataset  | Ex/cls |           Jax          |         PyTorch        |
+| :---     | :---:  |          :---:         |          :---:         |
+| CIFAR10  |   1    | 44.0 ← **56.7** → 65.0 | 50.9 ← **55.5** → 59.5 |
+| CIFAR10  |   5    | 85.3 ← **87.0** → 88.2 | 85.3 ← **85.8** → 88.6 |
+| CIFAR10  |  full  |  WIP ← **WIP** → WIP   | 98.5 ← **98.5** → 98.6 |
+| CIFAR100 |   1    | 36.4 ← **37.2** → 38.9 | 34.3 ← **36.8** → 39.0 |
+| CIFAR100 |   5    | 69.3 ← **70.5** → 72.0 | 70.3 ← **72.0** → 72.3 |
+| CIFAR100 |  full  |  WIP ← **WIP** → WIP   | 91.2 ← **91.3** → 91.4 |
+
+(TF2 models not yet available.)
 
 #### BiT-M-R50x1
 
@@ -113,8 +139,8 @@ Further increase to `--batch_split 8` when running with 4 V100 GPUs, etc.
 
 Full results achieved that way in some test runs were:
 
-| Ex/cls | R50x1 | R101x3 |
-| :---:  | :---: | :---:  |
-|   1    | 18.36 | 25.55  |
-|   5    | 50.64 | 64.18  |
-|  full  | 80.68 | WIP    |
+| Ex/cls | R50x1 | R152x2 | R101x3 |
+| :---:  | :---: | :---:  | :---:  |
+|   1    | 18.36 | WIP    | 25.55  |
+|   5    | 50.64 | WIP    | 64.18  |
+|  full  | 80.68 | WIP    | WIP    |
