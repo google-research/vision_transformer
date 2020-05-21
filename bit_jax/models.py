@@ -161,5 +161,5 @@ _block_sizes = {
 KNOWN_MODELS = dict(
   [(bit + f'-R{l}x{w}', ResNet.partial(num_layers=l, width_factor=w))
    for bit in ['BiT-S', 'BiT-M']
-   for l, w in [(50, 1), (50, 3), (101, 1), (101, 3), (152, 4)]]
+   for l, w in [(50, 1), (50, 3), (101, 1), (152, 2), (101, 3), (152, 4)]]
 )
