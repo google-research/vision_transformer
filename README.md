@@ -141,6 +141,6 @@ Full results achieved that way in some test runs were:
 
 | Ex/cls | R50x1 | R152x2 | R101x3 |
 | :---:  | :---: | :---:  | :---:  |
-|   1    | 18.36 | WIP    | 25.55  |
-|   5    | 50.64 | WIP    | 64.18  |
+|   1    | 18.36 | 24.5   | 25.55  |
+|   5    | 50.64 | 64.5   | 64.18  |
 |  full  | 80.68 | WIP    | WIP    |
