@@ -46,6 +46,15 @@ We also support training in the low-data regime: the `--examples_per_class <K>` 
 
 To see a detailed list of all available flags, run `python3 -m bit_{pytorch|jax|tf2}.train --help`.
 
+### BiT-M models fine-tuned on ILSVRC-2012
+
+For convenience, we provide BiT-M models that were already fine-tuned on the
+ILSVRC-2012 dataset. The models can be downloaded by adding the `-ILSVRC2012`
+postfix, e.g.
+```
+wget https://storage.googleapis.com/bit_models/BiT-M-R50x1-ILSVRC2012.npz
+```
+
 ### Available architectures
 
 We release all architectures mentioned in the paper, such that you may choose between accuracy or speed: R50x1, R101x1, R50x3, R101x3, R152x4.
