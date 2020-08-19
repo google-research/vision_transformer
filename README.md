@@ -152,4 +152,17 @@ Full results achieved that way in some test runs were:
 | :---:  | :---: | :---:  | :---:  |
 |   1    | 18.36 | 24.5   | 25.55  |
 |   5    | 50.64 | 64.5   | 64.18  |
-|  full  | 80.68 | WIP    | WIP    |
+|  full  | 80.68 | 85.15  | WIP    |
+
+## Out of context dataset
+
+In Appendix G of our paper, we investigate whether BiT improves out-of-context robustness.
+To do this, we created a dataset comprising foreground objects corresponding to 21 ILSVRC-2012 classes pasted onto 41 miscellaneous backgrounds.
+
+To download the dataset, run
+
+```
+wget https://storage.googleapis.com/bit-out-of-context-dataset/bit_out_of_context_dataset.zip
+```
+
+Images from each of the 21 classes are kept in a directory with the name of the class.
