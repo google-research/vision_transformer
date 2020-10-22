@@ -1,2 +1,4 @@
 *.npz
 __pycache__/
+/.vscode
+/.env
