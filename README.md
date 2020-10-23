@@ -33,7 +33,7 @@ Check out the Colab for loading the data, fine-tuning the model, evaluation,
 and inference. The Colab loads the code from this repository and runs by
 default on a TPU with 8 cores.
 
-https://colab.sandbox.google.com/github/google-research/vision_transformer/blob/master/vit_jax.ipynb
+https://colab.research.google.com/github/google-research/vision_transformer/blob/master/vit_jax.ipynb
 
 Note that the Colab can be run as is storing all data in the ephemeral VM, or,
 alternatively you can log into your personal Google Drive to persist the code
