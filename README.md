@@ -13,9 +13,10 @@ Note: This repository was forked and modified from
 ## Introduction
 
 In this repository we release models from the paper [An Image is Worth 16x16
-Words: Transformers for Image Recognition at Scale](https://TODO) that were
-pre-trained on the [ImageNet-21k](http://www.image-net.org/) (`imagenet21k`)
-dataset. We provide the code for fine-tuning the released models in
+Words: Transformers for Image Recognition at
+Scale](https://arxiv.org/abs/2010.11929) that were pre-trained on the
+[ImageNet-21k](http://www.image-net.org/) (`imagenet21k`) dataset. We provide
+the code for fine-tuning the released models in
 [Jax](https://jax.readthedocs.io)/[Flax](http://flax.readthedocs.io).
 
 ![Figure 1 from paper](figure1.png)
@@ -124,5 +125,15 @@ Some examples for CIFAR-10/100 datasets are presented in the table below.
 | imagenet21k | ViT-B_16 | cifar100     | 500 / 50                    |   0.8917 |             17m | [tensorboard.dev](https://tensorboard.dev/experiment/5hM4GrnAR0KEZg725Ewnqg/) |
 | imagenet21k | ViT-B_16 | cifar100     | 1000 / 100                  |   0.9115 |             39m | [tensorboard.dev](https://tensorboard.dev/experiment/QLQTaaIoT9uEcAjtA0eRwg/) |
 
+## Bibtex
+
+```
+@article{dosovitskiy2020,
+  title={An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale},
+  author={Dosovitskiy, Alexey and Beyer, Lucas and Kolesnikov, Alexander and Weissenborn, Dirk and Zhai, Xiaohua and Unterthiner, Thomas and  Dehghani, Mostafa and Minderer, Matthias and Heigold, Georg and Gelly, Sylvain and Uszkoreit, Jakob and Houlsby, Neil},
+  journal={arXiv preprint arXiv:2010.11929},
+  year={2020}
+}
+```
 
 **This is not an official Google product.**
