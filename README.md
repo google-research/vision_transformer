@@ -59,6 +59,11 @@ ViT-B/16, ViT-B/32, ViT-L/32 - more coming soon, watch out for changes to this
 repo. We  provide the same models pre-trained on imagenet21k *and* fine-tuned on
 imagenet2012.
 
+**Update (29.10.2020)**: We have added ViT-B/16 and ViT-L/16 models pretrained
+on ImageNet-21k and then fine-tuned on ImageNet at 224x224 resolution (instead
+of default 384x384). These models have the suffix "-224" in their name.
+They are expected to achieve 81.2% and 82.7% top-1 accuracies respectively.
+
 You can find all these models in the following storage bucket:
 
 https://console.cloud.google.com/storage/vit_models/
