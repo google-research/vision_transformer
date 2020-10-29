@@ -87,6 +87,7 @@ def main(args):
       repeats=None,
       mixup_alpha=args.mixup_alpha,
       batch_size=args.batch,
+      shuffle_buffer=args.shuffle_buffer,
       tfds_manual_dir=args.tfds_manual_dir)
   batch = next(iter(ds_train))
   logger.info(ds_train)
@@ -168,7 +169,7 @@ def main(args):
       logger.info(f'Step: {step}/{total_steps} {100*done:.1f}%, '
                   f'ETA: {(time.time()-t0)/done*(1-done)/3600:.2f}h')
       copyfiles(glob.glob(f'{logdir}/*'))
-    
+
     # Run eval step
     if ((args.eval_every and step % args.eval_every == 0) or
         (step == total_steps)):

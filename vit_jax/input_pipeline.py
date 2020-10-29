@@ -70,6 +70,7 @@ def get_data(*,
              repeats,
              batch_size,
              mixup_alpha=0,
+             shuffle_buffer=MAX_IN_MEMORY,
              tfds_manual_dir=None,
              inception_crop=True):
   """Returns dataset for training/eval.
@@ -85,6 +86,7 @@ def get_data(*,
       dimensions [local_devices, batch_size / local_devices, ...].
     mixup_alpha: Coefficient for mixup combination. See 
       https://arxiv.org/abs/1710.09412
+    shuffle_buffer: Number of elements to preload the shuffle buffer with.
     tfds_manual_dir: Optional directory that contains downloaded files for
       tensorflow_dataset preparation.
     inception_crop: If set to True, tf.image.sample_distorted_bounding_box()
@@ -135,7 +137,7 @@ def get_data(*,
 
   data = data.repeat(repeats)
   if mode == 'train':
-    data = data.shuffle(min(dataset_info['num_examples'], MAX_IN_MEMORY))
+    data = data.shuffle(min(dataset_info['num_examples'], shuffle_buffer))
   data = data.map(_pp, tf.data.experimental.AUTOTUNE)
   data = data.batch(batch_size, drop_remainder=True)
 

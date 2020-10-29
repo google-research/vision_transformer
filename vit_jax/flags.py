@@ -77,6 +77,11 @@ def argparser(known_models, known_datasets):
   parser.add_argument(
       '--batch_eval', type=int, default=512, help='Batch size for evaluation.')
   parser.add_argument(
+      '--shuffle_buffer',
+      type=int,
+      default=200_000,
+      help='Shuffle buffer size.')
+  parser.add_argument(
       '--prefetch',
       type=int,
       default=2,
