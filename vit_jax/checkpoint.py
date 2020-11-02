@@ -186,16 +186,16 @@ def load_pretrained(*, pretrained_path, init_params, model_config, logger):
   """Loads/converts a pretrained checkpoint for fine tuning.
   
   Args:
-    logger: Logger to use to output diagnostic messages.
+    pretrained_path: File pointing to pretrained checkpoint.
     init_params: Parameters from model. Will be used for the head of the model
       and to verify that the model is compatible with the stored checkpoint.
-    init_file: File pointing to pretrained checkpoint.
     model_config: Configuration of the model. Will be used to configure the
       head and rescale the position embeddings.
+    logger: Logger to use to output diagnostic messages.
 
   Returns:
     Parameters like `init_params`, but loaded with pretrained weights from
-    `init_file` and adapted accordingly.
+    `pretrained_path` and adapted accordingly.
   """
 
   restored_params = inspect_params(
