@@ -57,7 +57,7 @@ def make_update_fn(vit_fn, accum_steps):
 
     def loss_fn(params, images, labels):
       with flax.nn.stochastic(update_rng):
-        logits = vit_fn(params, images)
+        logits = vit_fn(params, images, train=True)
       return cross_entropy_loss(logits=logits, labels=labels)
 
     l, g = hyper.accumulate_gradient(
