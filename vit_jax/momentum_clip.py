@@ -31,12 +31,13 @@ class Optimizer(flax.optim.OptimizerDef):
   class State:
     momentum: np.ndarray
 
-  def __init__(self, learning_rate=None, beta=0.9, grad_norm_clip=None):
+  def __init__(self, dtype, learning_rate=None, beta=0.9, grad_norm_clip=None):
     hyper_params = Optimizer.HyperParams(learning_rate, beta, grad_norm_clip)
     super().__init__(hyper_params)
+    self.dtype = dict(bfloat16=jnp.bfloat16, float32=jnp.float32)
 
   def init_param_state(self, param):
-    return Optimizer.State(jnp.zeros_like(param, dtype=jnp.bfloat16))
+    return Optimizer.State(jnp.zeros_like(param, dtype=jnp.float16))
 
   def apply_gradient(self, hyper_params, params, state, grads):
     step = state.step
@@ -67,5 +68,5 @@ class Optimizer(flax.optim.OptimizerDef):
     momentum = state.momentum
     new_momentum = hyper_params.beta * momentum + grad
     new_param = param - hyper_params.learning_rate * new_momentum
-    new_state = Optimizer.State(new_momentum.astype(jnp.bfloat16))
+    new_state = Optimizer.State(new_momentum.astype(jnp.float16))
     return new_param, new_state

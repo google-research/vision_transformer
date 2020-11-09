@@ -54,8 +54,8 @@ DATASET_PRESETS = {
 }
 
 
-def get_dataset_info(dataset, split):
-  data_builder = tfds.builder(dataset)
+def get_dataset_info(dataset, *, split, data_dir=None):
+  data_builder = tfds.builder(dataset, data_dir=data_dir)
   num_examples = data_builder.info.splits[split].num_examples
   num_classes = data_builder.info.features['label'].num_classes
   return data_builder, {
@@ -71,6 +71,7 @@ def get_data(*,
              batch_size,
              mixup_alpha=0,
              shuffle_buffer=MAX_IN_MEMORY,
+             tfds_data_dir=None,
              tfds_manual_dir=None,
              inception_crop=True):
   """Returns dataset for training/eval.
@@ -87,8 +88,9 @@ def get_data(*,
     mixup_alpha: Coefficient for mixup combination. See 
       https://arxiv.org/abs/1710.09412
     shuffle_buffer: Number of elements to preload the shuffle buffer with.
-    tfds_manual_dir: Optional directory that contains downloaded files for
-      tensorflow_dataset preparation.
+    tfds_data_dir: Optional directory where tfds datasets are stored. If not
+      specified, datasets are downloaded and in the default tfds data_dir on the
+      local machine.
     inception_crop: If set to True, tf.image.sample_distorted_bounding_box()
       will be used. If set to False, tf.image.random_crop() will be used.
   """
@@ -99,7 +101,8 @@ def get_data(*,
   split = preset[mode]
   resize_size = preset['resize']
   crop_size = preset['crop']
-  data_builder, dataset_info = get_dataset_info(dataset, split)
+  data_builder, dataset_info = get_dataset_info(
+      dataset, split=split, data_dir=tfds_data_dir)
 
   data_builder.download_and_prepare(
       download_config=tfds.download.DownloadConfig(manual_dir=tfds_manual_dir))

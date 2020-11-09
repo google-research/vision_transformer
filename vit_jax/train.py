@@ -36,7 +36,7 @@ from vit_jax import hyper
 from vit_jax import logging
 from vit_jax import input_pipeline
 from vit_jax import models
-from vit_jax import momentum_hp
+from vit_jax import momentum_clip
 
 
 def make_update_fn(vit_fn, accum_steps):
@@ -79,7 +79,7 @@ def main(args):
   logger.info(f'Available devices: {jax.devices()}')
 
   # Setup input pipeline
-  dataset_info = input_pipeline.get_dataset_info(args.dataset, 'train')
+  _, dataset_info = input_pipeline.get_dataset_info(args.dataset, split='train')
 
   ds_train = input_pipeline.get_data(
       dataset=args.dataset,
@@ -88,6 +88,7 @@ def main(args):
       mixup_alpha=args.mixup_alpha,
       batch_size=args.batch,
       shuffle_buffer=args.shuffle_buffer,
+      tfds_data_dir=args.tfds_data_dir,
       tfds_manual_dir=args.tfds_manual_dir)
   batch = next(iter(ds_train))
   logger.info(ds_train)
@@ -96,6 +97,7 @@ def main(args):
       mode='test',
       repeats=1,
       batch_size=args.batch_eval,
+      tfds_data_dir=args.tfds_data_dir,
       tfds_manual_dir=args.tfds_manual_dir)
   logger.info(ds_test)
 
@@ -119,7 +121,8 @@ def main(args):
   update_fn_repl = make_update_fn(VisionTransformer.call, args.accum_steps)
 
   # Create optimizer and replicate it over all TPUs/GPUs
-  opt = momentum_hp.Optimizer(grad_norm_clip=args.grad_norm_clip).create(params)
+  opt = momentum_clip.Optimizer(
+      dtype=args.optim_dtype, grad_norm_clip=args.grad_norm_clip).create(params)
   opt_repl = flax_utils.replicate(opt)
 
   # Delete referenes to the objects that are not needed anymore

@@ -52,6 +52,10 @@ def argparser(known_models, known_datasets):
       '--tfds_manual_dir',
       default=None,
       help='Path to manually downloaded dataset.')
+  parser.add_argument(
+      '--tfds_data_dir',
+      default=None,
+      help='Path to tensorflow_datasets directory.')
 
   parser.add_argument(
       '--mixup_alpha',
@@ -61,6 +65,11 @@ def argparser(known_models, known_datasets):
   )
   parser.add_argument(
       '--grad_norm_clip', type=int, default=1, help='Resizes global gradients.')
+  parser.add_argument(
+      '--optim_dtype',
+      choices=('bfloat16', 'float32'),
+      default='bfloat16',
+      help='Datatype to use for momentum state.')
 
   parser.add_argument(
       '--total_steps',
