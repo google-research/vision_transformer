@@ -55,9 +55,10 @@ pip install -r vit_jax/requirements.txt
 ## Available models
 
 We provide models pre-trained on imagenet21k for the following architectures:
-ViT-B/16, ViT-B/32, ViT-L/32 - more coming soon, watch out for changes to this
-repo. We  provide the same models pre-trained on imagenet21k *and* fine-tuned on
-imagenet2012.
+ViT-B/16, ViT-B/32, ViT-L/16, ViT-L/32 and ViT-H/14. We  provide the same models
+pre-trained on imagenet21k *and* fine-tuned on imagenet2012.
+
+**Update (9.11.2020)**: We have also added th ViT-L/16 and ViT-H/14 models.
 
 **Update (29.10.2020)**: We have added ViT-B/16 and ViT-L/16 models pretrained
 on ImageNet-21k and then fine-tuned on ImageNet at 224x224 resolution (instead
@@ -101,7 +102,11 @@ Notes about some flags:
     GPUs of type V100 with 16G memory each attached. If you have fewer
     accelerators or accelerators with less memory, you can use the same
     configuration but increase the `--accum_steps`. For a small model like
-    ViT-B_32 you can even use `--accum_steps=1`.
+    ViT-B_32 you can even use `--accum_steps=1`. For a large model like ViT-L_16
+    you need to go in the other direction (e.g. `--accum_steps=32`). Note that
+    the largest model ViT-H_14 also needs adaptation of the batch size
+    (`--accum_steps=2 --batch=16` should work on a 8x V100).
+    tested `)
   - `--batch_size=512` : Alternatively, you can decrease the batch size, but
     that usually involves some tuning of the learning rate parameters.
 
@@ -113,24 +118,30 @@ GPUs.
 
 | upstream    | model    | dataset      |   accuracy | wall_clock_time   | link                                                                                                                                                   |
 |:------------|:---------|:-------------|-----------:|------------------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------|
-| imagenet21k | ViT-B_16 | cifar10      |     0.9892 | 7.2h              | [tensorboard.dev](https://tensorboard.dev/experiment/KYu8HltjQdeGktGJyyQ6vw/#scalars&_smoothingWeight=0&regexInput=imagenet21k/ViT-B_16/cifar10/)      |
-| imagenet21k | ViT-B_16 | cifar10      |     0.9903 | 7.7h              | [tensorboard.dev](https://tensorboard.dev/experiment/KYu8HltjQdeGktGJyyQ6vw/#scalars&_smoothingWeight=0&regexInput=imagenet21k/ViT-B_16/cifar10/)      |
-| imagenet21k | ViT-B_16 | cifar100     |     0.9226 | 7.2h              | [tensorboard.dev](https://tensorboard.dev/experiment/KYu8HltjQdeGktGJyyQ6vw/#scalars&_smoothingWeight=0&regexInput=imagenet21k/ViT-B_16/cifar100/)     |
-| imagenet21k | ViT-B_16 | cifar100     |     0.9264 | 7.5h              | [tensorboard.dev](https://tensorboard.dev/experiment/KYu8HltjQdeGktGJyyQ6vw/#scalars&_smoothingWeight=0&regexInput=imagenet21k/ViT-B_16/cifar100/)     |
-| imagenet21k | ViT-B_16 | imagenet2012 |     0.8462 | 17.9h             | [tensorboard.dev](https://tensorboard.dev/experiment/KYu8HltjQdeGktGJyyQ6vw/#scalars&_smoothingWeight=0&regexInput=imagenet21k/ViT-B_16/imagenet2012/) |
-| imagenet21k | ViT-B_16 | imagenet2012 |     0.8461 | 17.8h             | [tensorboard.dev](https://tensorboard.dev/experiment/KYu8HltjQdeGktGJyyQ6vw/#scalars&_smoothingWeight=0&regexInput=imagenet21k/ViT-B_16/imagenet2012/) |
-| imagenet21k | ViT-B_32 | cifar10      |     0.9893 | 1.6h              | [tensorboard.dev](https://tensorboard.dev/experiment/KYu8HltjQdeGktGJyyQ6vw/#scalars&_smoothingWeight=0&regexInput=imagenet21k/ViT-B_32/cifar10/)      |
-| imagenet21k | ViT-B_32 | cifar10      |     0.9889 | 1.6h              | [tensorboard.dev](https://tensorboard.dev/experiment/KYu8HltjQdeGktGJyyQ6vw/#scalars&_smoothingWeight=0&regexInput=imagenet21k/ViT-B_32/cifar10/)      |
-| imagenet21k | ViT-B_32 | cifar100     |     0.9208 | 1.6h              | [tensorboard.dev](https://tensorboard.dev/experiment/KYu8HltjQdeGktGJyyQ6vw/#scalars&_smoothingWeight=0&regexInput=imagenet21k/ViT-B_32/cifar100/)     |
-| imagenet21k | ViT-B_32 | cifar100     |     0.9196 | 1.6h              | [tensorboard.dev](https://tensorboard.dev/experiment/KYu8HltjQdeGktGJyyQ6vw/#scalars&_smoothingWeight=0&regexInput=imagenet21k/ViT-B_32/cifar100/)     |
-| imagenet21k | ViT-B_32 | imagenet2012 |     0.8179 | 4.2h              | [tensorboard.dev](https://tensorboard.dev/experiment/KYu8HltjQdeGktGJyyQ6vw/#scalars&_smoothingWeight=0&regexInput=imagenet21k/ViT-B_32/imagenet2012/) |
-| imagenet21k | ViT-B_32 | imagenet2012 |     0.8179 | 4.1h              | [tensorboard.dev](https://tensorboard.dev/experiment/KYu8HltjQdeGktGJyyQ6vw/#scalars&_smoothingWeight=0&regexInput=imagenet21k/ViT-B_32/imagenet2012/) |
-| imagenet21k | ViT-L_32 | cifar10      |     0.9902 | 5.8h              | [tensorboard.dev](https://tensorboard.dev/experiment/KYu8HltjQdeGktGJyyQ6vw/#scalars&_smoothingWeight=0&regexInput=imagenet21k/ViT-L_32/cifar10/)      |
-| imagenet21k | ViT-L_32 | cifar10      |     0.9905 | 5.8h              | [tensorboard.dev](https://tensorboard.dev/experiment/KYu8HltjQdeGktGJyyQ6vw/#scalars&_smoothingWeight=0&regexInput=imagenet21k/ViT-L_32/cifar10/)      |
-| imagenet21k | ViT-L_32 | cifar100     |     0.9313 | 5.9h              | [tensorboard.dev](https://tensorboard.dev/experiment/KYu8HltjQdeGktGJyyQ6vw/#scalars&_smoothingWeight=0&regexInput=imagenet21k/ViT-L_32/cifar100/)     |
-| imagenet21k | ViT-L_32 | cifar100     |     0.9318 | 5.8h              | [tensorboard.dev](https://tensorboard.dev/experiment/KYu8HltjQdeGktGJyyQ6vw/#scalars&_smoothingWeight=0&regexInput=imagenet21k/ViT-L_32/cifar100/)     |
-| imagenet21k | ViT-L_32 | imagenet2012 |     0.8178 | 14.5h             | [tensorboard.dev](https://tensorboard.dev/experiment/KYu8HltjQdeGktGJyyQ6vw/#scalars&_smoothingWeight=0&regexInput=imagenet21k/ViT-L_32/imagenet2012/) |
-| imagenet21k | ViT-L_32 | imagenet2012 |     0.8201 | 13.9h             | [tensorboard.dev](https://tensorboard.dev/experiment/KYu8HltjQdeGktGJyyQ6vw/#scalars&_smoothingWeight=0&regexInput=imagenet21k/ViT-L_32/imagenet2012/) |
+| imagenet21k | ViT-B_16 | cifar10      |     0.9892 | 7.2h              | [tensorboard.dev](https://tensorboard.dev/experiment/CVAxQLz1Rwycg9WgqNG80Q/#scalars&_smoothingWeight=0&regexInput=imagenet21k/ViT-B_16/cifar10/)      |
+| imagenet21k | ViT-B_16 | cifar10      |     0.9903 | 7.7h              | [tensorboard.dev](https://tensorboard.dev/experiment/CVAxQLz1Rwycg9WgqNG80Q/#scalars&_smoothingWeight=0&regexInput=imagenet21k/ViT-B_16/cifar10/)      |
+| imagenet21k | ViT-B_16 | cifar100     |     0.9226 | 7.2h              | [tensorboard.dev](https://tensorboard.dev/experiment/CVAxQLz1Rwycg9WgqNG80Q/#scalars&_smoothingWeight=0&regexInput=imagenet21k/ViT-B_16/cifar100/)     |
+| imagenet21k | ViT-B_16 | cifar100     |     0.9264 | 7.5h              | [tensorboard.dev](https://tensorboard.dev/experiment/CVAxQLz1Rwycg9WgqNG80Q/#scalars&_smoothingWeight=0&regexInput=imagenet21k/ViT-B_16/cifar100/)     |
+| imagenet21k | ViT-B_16 | imagenet2012 |     0.8462 | 17.9h             | [tensorboard.dev](https://tensorboard.dev/experiment/CVAxQLz1Rwycg9WgqNG80Q/#scalars&_smoothingWeight=0&regexInput=imagenet21k/ViT-B_16/imagenet2012/) |
+| imagenet21k | ViT-B_16 | imagenet2012 |     0.8461 | 17.8h             | [tensorboard.dev](https://tensorboard.dev/experiment/CVAxQLz1Rwycg9WgqNG80Q/#scalars&_smoothingWeight=0&regexInput=imagenet21k/ViT-B_16/imagenet2012/) |
+| imagenet21k | ViT-B_32 | cifar10      |     0.9893 | 1.6h              | [tensorboard.dev](https://tensorboard.dev/experiment/CVAxQLz1Rwycg9WgqNG80Q/#scalars&_smoothingWeight=0&regexInput=imagenet21k/ViT-B_32/cifar10/)      |
+| imagenet21k | ViT-B_32 | cifar10      |     0.9889 | 1.6h              | [tensorboard.dev](https://tensorboard.dev/experiment/CVAxQLz1Rwycg9WgqNG80Q/#scalars&_smoothingWeight=0&regexInput=imagenet21k/ViT-B_32/cifar10/)      |
+| imagenet21k | ViT-B_32 | cifar100     |     0.9208 | 1.6h              | [tensorboard.dev](https://tensorboard.dev/experiment/CVAxQLz1Rwycg9WgqNG80Q/#scalars&_smoothingWeight=0&regexInput=imagenet21k/ViT-B_32/cifar100/)     |
+| imagenet21k | ViT-B_32 | cifar100     |     0.9196 | 1.6h              | [tensorboard.dev](https://tensorboard.dev/experiment/CVAxQLz1Rwycg9WgqNG80Q/#scalars&_smoothingWeight=0&regexInput=imagenet21k/ViT-B_32/cifar100/)     |
+| imagenet21k | ViT-B_32 | imagenet2012 |     0.8179 | 4.2h              | [tensorboard.dev](https://tensorboard.dev/experiment/CVAxQLz1Rwycg9WgqNG80Q/#scalars&_smoothingWeight=0&regexInput=imagenet21k/ViT-B_32/imagenet2012/) |
+| imagenet21k | ViT-B_32 | imagenet2012 |     0.8179 | 4.1h              | [tensorboard.dev](https://tensorboard.dev/experiment/CVAxQLz1Rwycg9WgqNG80Q/#scalars&_smoothingWeight=0&regexInput=imagenet21k/ViT-B_32/imagenet2012/) |
+| imagenet21k | ViT-L_16 | cifar10      |     0.9907 | 24.7h             | [tensorboard.dev](https://tensorboard.dev/experiment/CVAxQLz1Rwycg9WgqNG80Q/#scalars&_smoothingWeight=0&regexInput=imagenet21k/ViT-L_16/cifar10/)      |
+| imagenet21k | ViT-L_16 | cifar10      |     0.991  | 24.9h             | [tensorboard.dev](https://tensorboard.dev/experiment/CVAxQLz1Rwycg9WgqNG80Q/#scalars&_smoothingWeight=0&regexInput=imagenet21k/ViT-L_16/cifar10/)      |
+| imagenet21k | ViT-L_16 | cifar100     |     0.9304 | 24.8h             | [tensorboard.dev](https://tensorboard.dev/experiment/CVAxQLz1Rwycg9WgqNG80Q/#scalars&_smoothingWeight=0&regexInput=imagenet21k/ViT-L_16/cifar100/)     |
+| imagenet21k | ViT-L_16 | cifar100     |     0.93   | 24.4h             | [tensorboard.dev](https://tensorboard.dev/experiment/CVAxQLz1Rwycg9WgqNG80Q/#scalars&_smoothingWeight=0&regexInput=imagenet21k/ViT-L_16/cifar100/)     |
+| imagenet21k | ViT-L_16 | imagenet2012 |     0.8507 | 59.2h             | [tensorboard.dev](https://tensorboard.dev/experiment/CVAxQLz1Rwycg9WgqNG80Q/#scalars&_smoothingWeight=0&regexInput=imagenet21k/ViT-L_16/imagenet2012/) |
+| imagenet21k | ViT-L_16 | imagenet2012 |     0.8505 | 59.2h             | [tensorboard.dev](https://tensorboard.dev/experiment/CVAxQLz1Rwycg9WgqNG80Q/#scalars&_smoothingWeight=0&regexInput=imagenet21k/ViT-L_16/imagenet2012/) |
+| imagenet21k | ViT-L_32 | cifar10      |     0.9903 | 5.7h              | [tensorboard.dev](https://tensorboard.dev/experiment/CVAxQLz1Rwycg9WgqNG80Q/#scalars&_smoothingWeight=0&regexInput=imagenet21k/ViT-L_32/cifar10/)      |
+| imagenet21k | ViT-L_32 | cifar10      |     0.9909 | 5.8h              | [tensorboard.dev](https://tensorboard.dev/experiment/CVAxQLz1Rwycg9WgqNG80Q/#scalars&_smoothingWeight=0&regexInput=imagenet21k/ViT-L_32/cifar10/)      |
+| imagenet21k | ViT-L_32 | cifar100     |     0.9302 | 6.7h              | [tensorboard.dev](https://tensorboard.dev/experiment/CVAxQLz1Rwycg9WgqNG80Q/#scalars&_smoothingWeight=0&regexInput=imagenet21k/ViT-L_32/cifar100/)     |
+| imagenet21k | ViT-L_32 | cifar100     |     0.9306 | 6.7h              | [tensorboard.dev](https://tensorboard.dev/experiment/CVAxQLz1Rwycg9WgqNG80Q/#scalars&_smoothingWeight=0&regexInput=imagenet21k/ViT-L_32/cifar100/)     |
+| imagenet21k | ViT-L_32 | imagenet2012 |     0.8178 | 14.5h             | [tensorboard.dev](https://tensorboard.dev/experiment/CVAxQLz1Rwycg9WgqNG80Q/#scalars&_smoothingWeight=0&regexInput=imagenet21k/ViT-L_32/imagenet2012/) |
+| imagenet21k | ViT-L_32 | imagenet2012 |     0.8201 | 13.9h             | [tensorboard.dev](https://tensorboard.dev/experiment/CVAxQLz1Rwycg9WgqNG80Q/#scalars&_smoothingWeight=0&regexInput=imagenet21k/ViT-L_32/imagenet2012/) |
 
 We also would like to emphasize that high-quality results can be achieved with
 shorter training schedules and encourage users of our code to play with

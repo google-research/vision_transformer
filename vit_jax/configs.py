@@ -75,3 +75,19 @@ def get_l32_config():
   config = get_l16_config()
   config.patches.size = (32, 32)
   return config
+
+
+def get_h14_config():
+  """Returns the ViT-H/14 configuration."""
+  config = ml_collections.ConfigDict()
+  config.patches = ml_collections.ConfigDict({'size': (14, 14)})
+  config.hidden_size = 1280
+  config.transformer = ml_collections.ConfigDict()
+  config.transformer.mlp_dim = 5120
+  config.transformer.num_heads = 16
+  config.transformer.num_layers = 32
+  config.transformer.attention_dropout_rate = 0.0
+  config.transformer.dropout_rate = 0.1
+  config.classifier = 'token'
+  config.representation_size = None
+  return config
