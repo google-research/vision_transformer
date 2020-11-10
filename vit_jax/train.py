@@ -79,7 +79,7 @@ def main(args):
   logger.info(f'Available devices: {jax.devices()}')
 
   # Setup input pipeline
-  _, dataset_info = input_pipeline.get_dataset_info(args.dataset, split='train')
+  dataset_info = input_pipeline.get_dataset_info(args.dataset, 'train')
 
   ds_train = input_pipeline.get_data(
       dataset=args.dataset,

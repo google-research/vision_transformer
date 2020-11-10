@@ -54,11 +54,11 @@ DATASET_PRESETS = {
 }
 
 
-def get_dataset_info(dataset, *, split, data_dir=None):
-  data_builder = tfds.builder(dataset, data_dir=data_dir)
+def get_dataset_info(dataset, split):
+  data_builder = tfds.builder(dataset)
   num_examples = data_builder.info.splits[split].num_examples
   num_classes = data_builder.info.features['label'].num_classes
-  return data_builder, {
+  return {
       'num_examples': num_examples,
       'num_classes': num_classes
   }
@@ -101,8 +101,8 @@ def get_data(*,
   split = preset[mode]
   resize_size = preset['resize']
   crop_size = preset['crop']
-  data_builder, dataset_info = get_dataset_info(
-      dataset, split=split, data_dir=tfds_data_dir)
+  data_builder = tfds.builder(dataset, data_dir=tfds_data_dir)
+  dataset_info = get_dataset_info(dataset, split)
 
   data_builder.download_and_prepare(
       download_config=tfds.download.DownloadConfig(manual_dir=tfds_manual_dir))
