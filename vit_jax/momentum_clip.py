@@ -31,7 +31,11 @@ class Optimizer(flax.optim.OptimizerDef):
   class State:
     momentum: np.ndarray
 
-  def __init__(self, dtype, learning_rate=None, beta=0.9, grad_norm_clip=None):
+  def __init__(self,
+               learning_rate=None,
+               beta=0.9,
+               dtype='bfloat16',
+               grad_norm_clip=None):
     hyper_params = Optimizer.HyperParams(learning_rate, beta, grad_norm_clip)
     super().__init__(hyper_params)
     self.dtype = dict(bfloat16=jnp.bfloat16, float32=jnp.float32)
