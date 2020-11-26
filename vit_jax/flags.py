@@ -88,7 +88,7 @@ def argparser(known_models, known_datasets):
   parser.add_argument(
       '--shuffle_buffer',
       type=int,
-      default=200_000,
+      default=50_000,
       help='Shuffle buffer size.')
   parser.add_argument(
       '--prefetch',
