@@ -47,6 +47,17 @@ def get_b16_config():
   return config
 
 
+def get_r50_b16_config():
+  """Returns the Resnet50 + ViT-B/16 configuration."""
+  config = get_b16_config()
+  del config.patches.size
+  config.patches.grid = (14, 14)
+  config.resnet = ml_collections.ConfigDict()
+  config.resnet.num_layers = (3, 4, 9)
+  config.resnet.width_factor = 1
+  return config
+
+
 def get_b32_config():
   """Returns the ViT-B/32 configuration."""
   config = get_b16_config()
