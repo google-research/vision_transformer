@@ -58,7 +58,7 @@ We provide models pre-trained on imagenet21k for the following architectures:
 ViT-B/16, ViT-B/32, ViT-L/16, ViT-L/32 and ViT-H/14. We  provide the same models
 pre-trained on imagenet21k *and* fine-tuned on imagenet2012.
 
-**Update (30.11.2020)**: We have added the R50+ViT-B/16 hybrid model (ViT-B/16
+**Update (1.12.2020)**: We have added the R50+ViT-B/1 hybrid model (ViT-B/1
 on top of a Resnet50 backbone). When pretrained on imagenet21k, this model
 achieves almost the performance of the L/16 model with less than half the
 computational finetuning cost.

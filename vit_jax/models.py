@@ -232,25 +232,13 @@ class VisionTransformer(nn.Module):
 
     n, h, w, c = x.shape
 
-    # Embed the grid or patches of the grid.
-    if patches.get("grid") is not None:
-      gh, gw = patches.grid
-      fh, fw = h // gh, w // gw
-    else:
-      fh, fw = patches.size
-      gh, gw = h // fh, w // fw
-    if hidden_size:  # We can merge s2d+emb into a single conv; it's the same.
-      x = nn.Conv(
-          x,
-          hidden_size, (fh, fw),
-          strides=(fh, fw),
-          padding='VALID',
-          name='embedding')
-    else:
-      # This path often results in excessive padding.
-      x = jnp.reshape(x, [n, gh, fh, gw, fw, c])
-      x = jnp.transpose(x, [0, 1, 3, 2, 4, 5])
-      x = jnp.reshape(x, [n, gh, gw, -1])
+    # We can merge s2d+emb into a single conv; it's the same.
+    x = nn.Conv(
+        x,
+        hidden_size, patches.size,
+        strides=patches.size,
+        padding='VALID',
+        name='embedding')
 
     # Here, x is a grid of embeddings.
 

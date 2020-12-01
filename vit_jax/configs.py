@@ -50,8 +50,9 @@ def get_b16_config():
 def get_r50_b16_config():
   """Returns the Resnet50 + ViT-B/16 configuration."""
   config = get_b16_config()
-  del config.patches.size
-  config.patches.grid = (16, 16)
+  # Note: A patch size of /1 on top of a R50 stem results in an effective patch
+  # size of /16 (e.g. input image 224x224 -> 14x14 transformer grid).
+  config.patches.size = (1, 1)
   config.resnet = ml_collections.ConfigDict()
   config.resnet.num_layers = (3, 4, 9)
   config.resnet.width_factor = 1
