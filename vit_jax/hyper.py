@@ -21,7 +21,8 @@ def create_learning_rate_schedule(total_steps,
                                   base,
                                   decay_type,
                                   warmup_steps,
-                                  linear_end=1e-5):
+                                  linear_end=1e-5,
+                                  min_lr=1e-9):
   """Creates learning rate schedule.
 
   Currently only warmup + {linear,cosine} but will be a proper mini-language
@@ -32,7 +33,8 @@ def create_learning_rate_schedule(total_steps,
     base: The starting learning-rate (without warmup).
     decay_type: 'linear' or 'cosine'.
     warmup_steps: how many steps to warm up for.
-    linear_end: Minimum learning rate.
+    linear_end: Learning rate at the end of linear schedule.
+    min_lr: Minimum learning rate.
 
   Returns:
     A function learning_rate(step): float -> {"learning_rate": float}.
@@ -52,7 +54,7 @@ def create_learning_rate_schedule(total_steps,
       raise ValueError(f'Unknown lr type {decay_type}')
 
     if warmup_steps:
-      lr = lr * np.minimum(1., step / warmup_steps)
+      lr = max(lr * np.minimum(1., step / warmup_steps), min_lr)
 
     return np.asarray(lr, dtype=np.float32)
 
