@@ -18,6 +18,7 @@ import jax.numpy as jnp
 import flax.nn as nn
 
 from vit_jax import configs
+from vit_jax import models_resnet
 
 
 class IdentityLayer(nn.Module):
@@ -207,23 +208,37 @@ class VisionTransformer(nn.Module):
             representation_size=None,
             classifier='gap'):
 
+    # (Possibly partial) ResNet root.
+    if resnet is not None:
+      width = int(64 * resnet.width_factor)
+
+      # Root block.
+      x = models_resnet.StdConv(
+          x, width, (7, 7), (2, 2), bias=False, name='conv_root')
+      x = nn.GroupNorm(x, name='gn_root')
+      x = nn.relu(x)
+      x = nn.max_pool(x, (3, 3), strides=(2, 2), padding='SAME')
+
+      # ResNet stages.
+      x = models_resnet.ResNetStage(
+          x, resnet.num_layers[0], width, first_stride=(1, 1), name='block1')
+      for i, block_size in enumerate(resnet.num_layers[1:], 1):
+        x = models_resnet.ResNetStage(
+            x,
+            block_size,
+            width * 2**i,
+            first_stride=(2, 2),
+            name=f'block{i + 1}')
+
     n, h, w, c = x.shape
 
-    # Embed the grid or patches of the grid.
-    fh, fw = patches.size
-    gh, gw = h // fh, w // fw
-    if hidden_size:  # We can merge s2d+emb into a single conv; it's the same.
-      x = nn.Conv(
-          x,
-          hidden_size, (fh, fw),
-          strides=(fh, fw),
-          padding='VALID',
-          name='embedding')
-    else:
-      # This path often results in excessive padding.
-      x = jnp.reshape(x, [n, gh, fh, gw, fw, c])
-      x = jnp.transpose(x, [0, 1, 3, 2, 4, 5])
-      x = jnp.reshape(x, [n, gh, gw, -1])
+    # We can merge s2d+emb into a single conv; it's the same.
+    x = nn.Conv(
+        x,
+        hidden_size, patches.size,
+        strides=patches.size,
+        padding='VALID',
+        name='embedding')
 
     # Here, x is a grid of embeddings.
 
@@ -257,6 +272,7 @@ class VisionTransformer(nn.Module):
 
 CONFIGS = {
     'ViT-B_16': configs.get_b16_config(),
+    'R50+ViT-B_16': configs.get_r50_b16_config(),
     'ViT-B_32': configs.get_b32_config(),
     'ViT-L_16': configs.get_l16_config(),
     'ViT-L_32': configs.get_l32_config(),
