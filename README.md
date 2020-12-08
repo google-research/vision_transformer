@@ -112,7 +112,7 @@ Notes about some flags:
     the largest model ViT-H_14 also needs adaptation of the batch size
     (`--accum_steps=2 --batch=16` should work on a 8x V100).
     tested `)
-  - `--batch_size=512` : Alternatively, you can decrease the batch size, but
+  - `--batch=512` : Alternatively, you can decrease the batch size, but
     that usually involves some tuning of the learning rate parameters.
 
 ## Expected results
