@@ -129,6 +129,7 @@ def get_data(*,
       else:
         im = tf.image.resize(im, [resize_size, resize_size])
         im = tf.image.random_crop(im, [crop_size, crop_size, 3])
+      if tf.random.uniform(shape=[]) > 0.5:
         im = tf.image.flip_left_right(im)
     else:
       # usage of crop_size here is intentional
