@@ -107,7 +107,9 @@ def get_data(*,
   data_builder.download_and_prepare(
       download_config=tfds.download.DownloadConfig(manual_dir=tfds_manual_dir))
   data = data_builder.as_dataset(
-      split=split, decoders={'image': tfds.decode.SkipDecoding()})
+      split=split,
+      decoders={'image': tfds.decode.SkipDecoding()},
+      shuffle_files=mode == 'train')
   decoder = data_builder.info.features['image'].decode_example
 
   def _pp(data):
