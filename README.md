@@ -121,6 +121,11 @@ In this table we closely follow experiments from the paper and report results
 that were achieved by running this code on Google Cloud machine with eight V100
 GPUs.
 
+Note: Runs in table below before 2020-11-03 ([6fba202]) have
+`config.transformer.dropout_rate=0.0`.
+
+[6fba202]: https://github.com/google-research/vision_transformer/commit/6fba202f04622a17c6361a8c81ef471540facaa7
+
 | upstream    | model        | dataset      |   accuracy | wall_clock_time   | link                                                                                                                                                            |
 |:------------|:-------------|:-------------|-----------:|:------------------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | imagenet21k | R50+ViT-B_16 | cifar10      |     0.9893 | 10.8h             | [tensorboard.dev](https://tensorboard.dev/experiment/vNVL9RFmTBKJ4uK81CbGMQ/#scalars&_smoothingWeight=0&regexInput=imagenet21k/R50%5C%2BViT-B_16/cifar10/)      |
