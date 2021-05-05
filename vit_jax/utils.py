@@ -1,10 +1,10 @@
-# Copyright 2020 Google LLC
+# Copyright 2021 Google LLC.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#      http://www.apache.org/licenses/LICENSE-2.0
+#     http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -12,9 +12,46 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import flax
+import logging as python_logging
+import os
+import threading
+
+from absl import logging
 import jax
-import numpy as np
+import jax.numpy as jnp
+import tensorflow as tf
+
+
+class GFileHandler(python_logging.StreamHandler):
+  """Writes log messages to file using tf.io.gfile."""
+
+  def __init__(self, filename, mode, flush_secs=1.0):
+    super().__init__()
+    tf.io.gfile.makedirs(os.path.dirname(filename))
+    if mode == 'a' and not tf.io.gfile.exists(filename):
+      mode = 'w'
+    self.filehandle = tf.io.gfile.GFile(filename, mode)
+    self.flush_secs = flush_secs
+    self.flush_timer = None
+
+  def flush(self):
+    self.filehandle.flush()
+
+  def emit(self, record):
+    msg = self.format(record)
+    self.filehandle.write(f'{msg}\n')
+    if self.flush_timer is not None:
+      self.flush_timer.cancel()
+    self.flush_timer = threading.Timer(self.flush_secs, self.flush)
+    self.flush_timer.start()
+
+
+def add_gfile_logger(workdir, *, basename='train', level=python_logging.INFO):
+  """Adds GFile file logger to Python logging handlers."""
+  fh = GFileHandler(f'{workdir}/{basename}.log', 'a')
+  fh.setLevel(level)
+  fh.setFormatter(logging.PythonFormatter())
+  python_logging.getLogger('').addHandler(fh)
 
 
 def create_learning_rate_schedule(total_steps,
@@ -43,35 +80,20 @@ def create_learning_rate_schedule(total_steps,
     lr = base
 
     progress = (step - warmup_steps) / float(total_steps - warmup_steps)
-    progress = np.clip(progress, 0.0, 1.0)
+    progress = jnp.clip(progress, 0.0, 1.0)
     if decay_type == 'linear':
       lr = linear_end + (lr - linear_end) * (1.0 - progress)
     elif decay_type == 'cosine':
-      lr = lr * 0.5 * (1. + np.cos(np.pi * progress))
+      lr = lr * 0.5 * (1. + jnp.cos(jnp.pi * progress))
     else:
       raise ValueError(f'Unknown lr type {decay_type}')
 
     if warmup_steps:
-      lr = lr * np.minimum(1., step / warmup_steps)
+      lr = lr * jnp.minimum(1., step / warmup_steps)
 
-    return np.asarray(lr, dtype=np.float32)
+    return jnp.asarray(lr, dtype=jnp.float32)
 
   return step_fn
-
-
-def lr_prefetch_iter(lr_fn,
-                     first_step,
-                     total_steps,
-                     prefetch_to_device=2,
-                     devices=None):
-  local_device_count = (
-      jax.local_device_count() if devices is None else len(devices))
-  lr_iter = (
-      np.ones([local_device_count]) * lr_fn(i)
-      for i in range(first_step, total_steps))
-  # Prefetching learning rate eliminates significant TPU transfer overhead.
-  return flax.jax_utils.prefetch_to_device(
-      lr_iter, prefetch_to_device, devices=devices)
 
 
 def accumulate_gradient(loss_and_grad_fn, params, images, labels, accum_steps):
