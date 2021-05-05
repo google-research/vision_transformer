@@ -1,3 +1,9 @@
+**Note**: You're viewing the `linen` branch of this repository. The code has
+recently been updated and the results have not yet been fully replicated. We
+will update the table below soon with new results from the updated code and then
+merge this branch into `master`.
+
+
 # Vision Transformer
 by Alexey Dosovitskiy\*†, Lucas Beyer\*, Alexander Kolesnikov\*, Dirk
 Weissenborn\*, Xiaohua Zhai\*, Thomas Unterthiner, Mostafa Dehghani, Matthias
