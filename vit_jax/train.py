@@ -125,7 +125,7 @@ def main(args):
       dtype=args.optim_dtype, grad_norm_clip=args.grad_norm_clip).create(params)
   opt_repl = flax_utils.replicate(opt)
 
-  # Delete referenes to the objects that are not needed anymore
+  # Delete references to the objects that are not needed anymore
   del opt
   del params
 
