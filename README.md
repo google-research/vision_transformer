@@ -3,29 +3,35 @@ recently been updated and the results have not yet been fully replicated. We
 will update the table below soon with new results from the updated code and then
 merge this branch into `master`.
 
+# Vision Transformer and MLP-Mixer Architectures for Vision
 
-# Vision Transformer
-by Alexey Dosovitskiy\*†, Lucas Beyer\*, Alexander Kolesnikov\*, Dirk
-Weissenborn\*, Xiaohua Zhai\*, Thomas Unterthiner, Mostafa Dehghani, Matthias
-Minderer, Georg Heigold, Sylvain Gelly, Jakob Uszkoreit and Neil Houlsby\*†.
+In this repository we release models from the papers
+[An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale](https://arxiv.org/abs/2010.11929)
+and
+[MLP-Mixer: An all-MLP Architecture for Vision](https://arxiv.org/abs/2105.01601)
+that were pre-trained on the [ImageNet](http://www.image-net.org/) (`imagenet`)
+and [ImageNet-21k](http://www.image-net.org/) (`imagenet21k`) datasets. We
+provide the code for fine-tuning the released models in
+[Jax](https://jax.readthedocs.io)/[Flax](http://flax.readthedocs.io).
 
-(\*) equal technical contribution, (†) equal advising.
+First we describe the [Vision Transformer (ViT)](#vision-transformer) models.
+Feel free to [jump to the section describing the MLP-Mixer models](#mlp-mixer)
+if that's what you came for.
 
 Open source release prepared by Andreas Steiner.
 
 Note: This repository was forked and modified from
 [google-research/big_transfer](https://github.com/google-research/big_transfer).
 
-## Introduction
+## Vision Transformer
 
-In this repository we release models from the paper [An Image is Worth 16x16
-Words: Transformers for Image Recognition at
-Scale](https://arxiv.org/abs/2010.11929) that were pre-trained on the
-[ImageNet-21k](http://www.image-net.org/) (`imagenet21k`) dataset. We provide
-the code for fine-tuning the released models in
-[Jax](https://jax.readthedocs.io)/[Flax](http://flax.readthedocs.io).
+by Alexey Dosovitskiy\*†, Lucas Beyer\*, Alexander Kolesnikov\*, Dirk
+Weissenborn\*, Xiaohua Zhai\*, Thomas Unterthiner, Mostafa Dehghani, Matthias
+Minderer, Georg Heigold, Sylvain Gelly, Jakob Uszkoreit and Neil Houlsby\*†.
 
-![Figure 1 from paper](figure1.png)
+(\*) equal technical contribution, (†) equal advising.
+
+![Figure 1 from paper](vit_figure.png)
 
 Overview of the model: we split an image into fixed-size patches, linearly embed
 each of them, add position embeddings, and feed the resulting sequence of
@@ -35,9 +41,9 @@ to the sequence.
 
 ## Colab
 
-Check out the Colab for loading the data, fine-tuning the model, evaluation,
-and inference. The Colab loads the code from this repository and runs by
-default on a TPU with 8 cores.
+Check out the Colab for loading the data, fine-tuning the ViT model, its
+evaluation, and inference. The Colab loads the code from this repository and
+runs by default on a TPU with 8 cores.
 
 https://colab.research.google.com/github/google-research/vision_transformer/blob/master/vit_jax.ipynb
 
@@ -58,7 +64,7 @@ Then, install python dependencies by running:
 pip install -r vit_jax/requirements.txt
 ```
 
-## Available models
+## Available ViT models
 
 We provide models pre-trained on imagenet21k for the following architectures:
 ViT-B/16, ViT-B/32, ViT-L/16 and ViT-L/32. We  provide the same models
@@ -98,7 +104,7 @@ You can run fine-tuning of the downloaded model on your dataset of interest. All
 frameworks share the command line interface
 
 ```
-python3 -m vit_jax.train --name ViT-B_16-cifar10_`date +%F_%H%M%S` --model ViT-B_16 --logdir /tmp/vit_logs --dataset cifar10
+python -m vit_jax.main --workdir=/tmp/vit --config=$(pwd)/vit_jax/configs/vit.py:b16,cifar10 --config.pretrained_dir="gs://vit_models/imagenet21k/"
 ```
 
 Currently, the code will automatically download CIFAR-10 and CIFAR-100 datasets.
@@ -114,23 +120,23 @@ To see a detailed list of all available flags, run `python3 -m vit_jax.train
 
 Notes about some flags:
 
-  - `--accum_steps=16` : This works well with ViT-B_16 on a machine that has 8
-    GPUs of type V100 with 16G memory each attached. If you have fewer
+-   `--config.accum_steps=16` : This works well with ViT-B_16 on a machine that
+    has 8 GPUs of type V100 with 16G memory each attached. If you have fewer
     accelerators or accelerators with less memory, you can use the same
-    configuration but increase the `--accum_steps`. For a small model like
-    ViT-B_32 you can even use `--accum_steps=1`. For a large model like ViT-L_16
-    you need to go in the other direction (e.g. `--accum_steps=32`). Note that
-    the largest model ViT-H_14 also needs adaptation of the batch size
-    (`--accum_steps=2 --batch=16` should work on a 8x V100).
-    tested `)
-  - `--batch=512` : Alternatively, you can decrease the batch size, but
+    configuration but increase the `--config.accum_steps`. For a small model
+    like ViT-B_32 you can even use `--config.accum_steps=1`. For a large model
+    like ViT-L_16 you need to go in the other direction (e.g.
+    `--config.accum_steps=32`). Note that the largest model ViT-H_14 also needs
+    adaptation of the batch size (`--config.accum_steps=2 --config.batch=16`
+    should work on a 8x V100). tested `)
+-   `--config.batch=512` : Alternatively, you can decrease the batch size, but
     that usually involves some tuning of the learning rate parameters.
 
 ## Expected results
 
-In this table we closely follow experiments from the paper and report results
-that were achieved by running this code on Google Cloud machine with eight V100
-GPUs.
+In this table we closely follow experiments from the ViT paper and report
+results that were achieved by running the code on Google Cloud machine with
+eight V100 GPUs.
 
 Note: Runs in table below before 2020-11-03 ([6fba202]) have
 `config.transformer.dropout_rate=0.0`.
@@ -182,14 +188,78 @@ Some examples for CIFAR-10/100 datasets are presented in the table below.
 | imagenet21k | ViT-B_16 | cifar100     | 500 / 50                    |   0.8917 |             17m | [tensorboard.dev](https://tensorboard.dev/experiment/5hM4GrnAR0KEZg725Ewnqg/) |
 | imagenet21k | ViT-B_16 | cifar100     | 1000 / 100                  |   0.9115 |             39m | [tensorboard.dev](https://tensorboard.dev/experiment/QLQTaaIoT9uEcAjtA0eRwg/) |
 
+## MLP-Mixer
+
+by Ilya Tolstikhin\*, Neil Houlsby\*, Alexander Kolesnikov\*, Lucas Beyer\*,
+Xiaohua Zhai, Thomas Unterthiner, Jessica Yung, Daniel Keysers, Jakob Uszkoreit,
+Mario Lucic, Alexey Dosovitskiy.
+
+(\*) equal contribution.
+
+![Figure 1 from paper](mixer_figure.png)
+
+MLP-Mixer (*Mixer* for short) consists of per-patch linear embeddings, Mixer
+layers, and a classifier head. Mixer layers contain one token-mixing MLP and one
+channel-mixing MLP, each consisting of two fully-connected layers and a GELU
+nonlinearity. Other components include: skip-connections, dropout, and linear
+classifier head.
+
+For installation follow [the same steps](#installation) as above.
+
+## Available Mixer models
+
+We provide the Mixer-B/16 and Mixer-L/16 models pre-trained on the ImageNet and
+ImageNet-21k datasets. Details can be found in Table 3 of the Mixer paper. All
+the models can be found at:
+
+https://console.cloud.google.com/storage/mixer_models/
+
+## Colab
+
+**Note**: We will soon extend the colab with Mixer examples.
+
+## Fine-tuning Mixer models
+
+The following command will load the Mixer-B/16 model pre-trained on ImageNet-21k
+and fine-tune it on CIFAR-10 at resolution 224:
+
+```
+python -m vit_jax.main --workdir=/tmp/mixer --config=$(pwd)/vit_jax/configs/mixer_base16_cifar10.py  --config.pretrained_dir="gs://mixer_models/imagenet21k/"
+```
+
+Specify `gs://mixer_models/imagenet1k/` to fine-tune the models pre-trained on
+ImageNet. Change the `config.model` in the `mixer_base16_cifar10.py` config file
+to use the Mixer-L/16 model. More details (including how to fine-tune on other
+datasets) can be found in the
+[section describing fine-tuning for ViT](#how-to-fine-tune-vit).
+
+## Reproducing Mixer results on CIFAR-10
+
+We ran the fine-tuning code on Google Cloud machine with four V100 GPUs with the
+default adaption parameters from this repository. Here are the results:
+
+upstream     | model      | dataset | accuracy | wall_clock_time | link
+:----------- | :--------- | :------ | -------: | :-------------- | :---
+ImageNet     | Mixer-B/16 | cifar10 | 96.72    | 3.0h            | [tensorboard.dev](https://tensorboard.dev/experiment/j9zCYt9yQVm93nqnsDZayA/)
+ImageNet     | Mixer-L/16 | cifar10 | 96.59    | 3.0h            | [tensorboard.dev](https://tensorboard.dev/experiment/Q4feeErzRGGop5XzAvYj2g/)
+ImageNet-21k | Mixer-B/16 | cifar10 | 96.82    | 9.6h            | [tensorboard.dev](https://tensorboard.dev/experiment/mvP4McV2SEGFeIww20ie5Q/)
+ImageNet-21k | Mixer-L/16 | cifar10 | 98.34    | 10.0h           | [tensorboard.dev](https://tensorboard.dev/experiment/dolAJyQYTYmudytjalF6Jg/)
+
 ## Bibtex
 
 ```
 @article{dosovitskiy2020,
   title={An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale},
   author={Dosovitskiy, Alexey and Beyer, Lucas and Kolesnikov, Alexander and Weissenborn, Dirk and Zhai, Xiaohua and Unterthiner, Thomas and  Dehghani, Mostafa and Minderer, Matthias and Heigold, Georg and Gelly, Sylvain and Uszkoreit, Jakob and Houlsby, Neil},
-  journal={arXiv preprint arXiv:2010.11929},
-  year={2020}
+  journal={ICLR},
+  year={2021}
+}
+
+@article{tolstikhin2021,
+  title={MLP-Mixer: An all-MLP Architecture for Vision},
+  author={Tolstikhin, Ilya and Houlsby, Neil and Kolesnikov, Alexander and Beyer, Lucas and Zhai, Xiaohua and Unterthiner, Thomas and Yung, Jessica and Keysers, Daniel and Uszkoreit, Jakob and Lucic, Mario and Dosovitskiy, Alexey},
+  journal={arXiv preprint arXiv:2105.01601},
+  year={2021}
 }
 ```
 

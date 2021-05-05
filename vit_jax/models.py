@@ -17,6 +17,7 @@ from typing import Any, Callable, Optional, Tuple
 import flax.linen as nn
 import jax.numpy as jnp
 
+from vit_jax import models_mixer
 from vit_jax import models_resnet
 
 Array = Any
@@ -298,3 +299,4 @@ class VisionTransformer(nn.Module):
     return x
 
 
+MlpMixer = models_mixer.MlpMixer
