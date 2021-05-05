@@ -96,7 +96,8 @@ def train_and_evaluate(config: ml_collections.ConfigDict, workdir: str):
   logging.info(ds_test)
 
   # Build VisionTransformer architecture
-  model_cls = models.VisionTransformer
+  model_cls = {'ViT': models.VisionTransformer,
+               'Mixer': models.MlpMixer}[config.get('model_type', 'ViT')]
   model = model_cls(num_classes=dataset_info['num_classes'], **config.model)
 
   def init_model():

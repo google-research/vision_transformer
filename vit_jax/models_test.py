@@ -31,6 +31,8 @@ MODEL_SIZES = {
     'ViT-L_32': 306_535_400,
     'R50+ViT-L_32': 328_994_856,
     'ViT-H_14': 632_045_800,
+    'Mixer-B_16': 59_880_472,
+    'Mixer-L_16': 208_196_168,
 }
 
 
@@ -40,7 +42,7 @@ class ModelsTest(parameterized.TestCase):
   def test_can_instantiate(self, name, size):
     rng = jax.random.PRNGKey(0)
     config = config_lib.MODEL_CONFIGS[name]
-    model_cls = models.VisionTransformer
+    model_cls = models.VisionTransformer if 'ViT' in name else models.MlpMixer
     model = model_cls(num_classes=1_000, **config)
     inputs = jnp.ones([2, 224, 224, 3], jnp.float32)
     variables = model.init(rng, inputs, train=False)

@@ -45,7 +45,6 @@ class TrainTest(absltest.TestCase):
 
     test_utils.create_checkpoint(config.model, f'{workdir}/testing.npz')
     opt_pmap = train.train_and_evaluate(config, workdir)
-    opt_pmap = train.train_and_evaluate(config, workdir)
     self.assertTrue(os.path.exists(f'{workdir}/model.npz'))
 
 
