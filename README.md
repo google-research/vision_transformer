@@ -1,3 +1,7 @@
+*Note*: Mixer code is currently available in the
+[linen branch](https://github.com/google-research/vision_transformer/tree/linen),
+which will be merged soon.
+
 # Vision Transformer
 by Alexey Dosovitskiy\*†, Lucas Beyer\*, Alexander Kolesnikov\*, Dirk
 Weissenborn\*, Xiaohua Zhai\*, Thomas Unterthiner, Mostafa Dehghani, Matthias
