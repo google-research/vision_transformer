@@ -22,14 +22,30 @@ import jax.lax as lax
 init = nn.initializers.lecun_normal()
 
 
-class MlpBlock(nn.Module):
+class SpatialDense(nn.Module):
     mlp_dim: int
 
     @nn.compact
     def __call__(self, x):
-        y = nn.Dense(self.mlp_dim)(x)
+        batch, space, *_ = x.shape
+        weight = self.param(f'kernel', init, (space, self.mlp_dim))
+        weight = lax.broadcast(weight, (batch,))
+        out = lax.dot_general(weight, x, (((1,), (1,)), ((0,), (0,))))
+        out += self.param(f'bias', jax.nn.initializers.zeros,
+                          (1, self.mlp_dim, 1))
+        return out
+
+
+class MlpBlock(nn.Module):
+    mlp_dim: int
+    dense: nn.Module = nn.Dense
+
+    @nn.compact
+    def __call__(self, x):
+        y = nn.LayerNorm()(x)
+        y = self.dense(self.mlp_dim)(y)
         y = nn.gelu(y)
-        return nn.Dense(x.shape[-1])(y)
+        return self.dense(x.shape[-1])(y)
 
 
 class MixerBlock(nn.Module):
@@ -37,21 +53,11 @@ class MixerBlock(nn.Module):
     tokens_mlp_dim: int
     channels_mlp_dim: int
 
-    def _spatial_dense(self, inp, shape):
-        weight = self.param(f'kernel{shape[0]}', init, shape)
-        weight = lax.broadcast(weight, (inp.shape[0],))
-        out = lax.dot_general(weight, inp, (((1,), (1,)), ((0,), (0,))))
-        out += self.param(f'bias{shape[0]}', jax.nn.initializers.zeros,
-                          (1, shape[-1], 1))
-        return out
-
     @nn.compact
     def __call__(self, x):
-        _, spatial, feature = x.shape
-        shape = (spatial, self.tokens_mlp_dim)
-        y = self._spatial_dense(nn.LayerNorm()(x), shape)
-        x += self._spatial_dense(nn.gelu(y), shape[::-1])
-        return x + MlpBlock(self.channels_mlp_dim)(nn.LayerNorm()(x))
+        x += MlpBlock(self.tokens_mlp_dim, SpatialDense)(x)
+        x += MlpBlock(self.channels_mlp_dim, nn.Dense)(x)
+        return x
 
 
 class MlpMixer(nn.Module):
