@@ -49,8 +49,8 @@ class MixerBlock(nn.Module):
     def __call__(self, x):
         _, patch, _ = x.shape
         shape = (patch, self.tokens_mlp_dim)
-        x += nn.Dense(nn.gelu(self._swap_dims(x, shape)))
-        x += nn.Dense(nn.gelu(self._swap_dims(x, shape)))
+        x += nn.Dense()(nn.gelu(self._swap_dims(x, shape)))
+        x += nn.Dense()(nn.gelu(self._swap_dims(x, shape)))
         return x
 
 
