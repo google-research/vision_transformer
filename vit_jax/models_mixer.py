@@ -41,7 +41,7 @@ class MixerBlock(nn.Module):
         weight = self.param(f'kernel{cnt}', init, (patch, self.tokens_mlp_dim))
         out = lax.dot_general(inp, weight, (((1,), (0,)), ((), ())))
         out += self.param(f'bias{cnt}', jax.nn.initializers.zeros,
-                          (1, out.size[1], 1))
+                          (1, out.shape[1], 1))
         return out
 
     @nn.compact
