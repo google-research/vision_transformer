@@ -191,8 +191,8 @@ Some examples for CIFAR-10/100 datasets are presented in the table below.
 ## MLP-Mixer
 
 by Ilya Tolstikhin\*, Neil Houlsby\*, Alexander Kolesnikov\*, Lucas Beyer\*,
-Xiaohua Zhai, Thomas Unterthiner, Jessica Yung, Daniel Keysers, Jakob Uszkoreit,
-Mario Lucic, Alexey Dosovitskiy.
+Xiaohua Zhai, Thomas Unterthiner, Jessica Yung, Andreas Steiner, Daniel Keysers,
+Jakob Uszkoreit, Mario Lucic, Alexey Dosovitskiy.
 
 (\*) equal contribution.
 
