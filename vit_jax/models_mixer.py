@@ -15,8 +15,6 @@
 from typing import Any
 
 import flax.linen as nn
-import jax
-import flax
 import jax.numpy as jnp
 import jax.lax as lax
 
@@ -38,21 +36,20 @@ class MixerBlock(nn.Module):
     tokens_mlp_dim: int
     channels_mlp_dim: int
 
+    def _spatial_mixing(self, inp, patch, cnt):
+        weight = self.param(f'kernel{cnt}', init, (patch, self.tokens_mlp_dim))
+        out = lax.dot_general(inp, weight, (((1,), (0,)), ((), ())))
+        out += self.param(f'bias{cnt}', jnp.zeros, (1, self.tokens_mlp_dim, 1))
+        return out
+
     @nn.compact
     def __call__(self, x):
-        batch, patch, channel = x.shape
-
-        """dimension_numbers: a tuple of tuples of the form
-           `((lhs_contracting_dims, rhs_contracting_dims),
-            (lhs_batch_dims, rhs_batch_dims))`"""
-        y = lax.dot_general(nn.LayerNorm()(x),
-                            self.param('kernel0', init, (patch, self.tokens_mlp_dim)),
-                            (((1,), (0,)), ((), ())))
-        y = lax.dot_general(nn.gelu(y + self.param('bias0', jax.nn.initializers.zeros, (1, self.tokens_mlp_dim, 1))),
-                            self.param('kernel1', init, (self.tokens_mlp_dim, patch)),
-                            (((1,), (0,)), ((), ())))
-        x = x + y + self.param('bias1', jnp.zeros, (self.tokens_mlp_dim,))
-        return x + MlpBlock(self.channels_mlp_dim, name='channel_mixing')(nn.LayerNorm()(x))
+        _, patch, _ = x.shape
+        y = self._spatial_mixing(nn.LayerNorm()(x), patch, 0)
+        y = self._spatial_mixing(nn.gelu(y), patch, 1)
+        x += y
+        y = nn.LayerNorm()(x)
+        return x + MlpBlock(self.channels_mlp_dim, name='channel_mixing')(y)
 
 
 class MlpMixer(nn.Module):
