@@ -15,6 +15,8 @@
 from typing import Any
 
 import flax.linen as nn
+import jax
+import flax
 import jax.numpy as jnp
 import jax.lax as lax
 
@@ -39,10 +41,10 @@ class MixerBlock(nn.Module):
     @nn.compact
     def __call__(self, x):
         batch, patch, channel = x.shape
-        y = lax.xeinsum('npc,pb->nbc', nn.LayerNorm(x),
-                        self.param('kernel0', init, (channel, self.tokens_mlp_dim)))
-        y = lax.xeinsum('npc,pb->nbc', nn.gelu(y + self.param('bias0', jnp.zeros, (self.tokens_mlp_dim,))),
-                        self.param('kernel1', init, (self.tokens_mlp_dim, channel)))
+        y = jnp.einsum('npc,pb->nbc', nn.LayerNorm(x),
+                       self.param('kernel0', init, (channel, self.tokens_mlp_dim)))
+        y = jnp.einsum('npc,pb->nbc', nn.gelu(y + self.param('bias0', jnp.zeros, (self.tokens_mlp_dim,))),
+                       self.param('kernel1', init, (self.tokens_mlp_dim, channel)))
         x = x + y + self.param('bias1', jnp.zeros, (self.tokens_mlp_dim,))
         return x + MlpBlock(self.channels_mlp_dim, name='channel_mixing')(nn.LayerNorm()(x))
 
