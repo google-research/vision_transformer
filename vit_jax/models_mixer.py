@@ -47,10 +47,10 @@ class MixerBlock(nn.Module):
 
     @nn.compact
     def __call__(self, x):
-        _, patch, _ = x.shape
-        shape = (patch, self.tokens_mlp_dim)
-        x += nn.Dense()(nn.gelu(self._swap_dims(x, shape)))
-        x += nn.Dense()(nn.gelu(self._swap_dims(x, shape)))
+        _, spatial, feature = x.shape
+        shape = (spatial, self.tokens_mlp_dim)
+        x += nn.Dense(spatial)(nn.gelu(self._swap_dims(x, shape)))
+        x += nn.Dense(feature)(nn.gelu(self._swap_dims(x, shape)))
         return x
 
 
