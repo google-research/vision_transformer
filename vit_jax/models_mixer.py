@@ -37,22 +37,21 @@ class MixerBlock(nn.Module):
     tokens_mlp_dim: int
     channels_mlp_dim: int
 
-    def _spatial_mixing(self, inp, shape):
+    def _swap_dims(self, inp, shape):
+        out = nn.LayerNorm()(inp)
         weight = self.param(f'kernel{shape[0]}', init, shape)
-        out = lax.dot_general(inp, weight, (((1,), (0,)), ((), ())))
+        out = lax.dot_general(out, weight, (((1,), (0,)), ((), ())))
         out += self.param(f'bias{shape[0]}', jax.nn.initializers.zeros,
-                          (1, shape[1], 1))
+                          (1, 1, shape[1]))
         return out
 
     @nn.compact
     def __call__(self, x):
         _, patch, _ = x.shape
         shape = (patch, self.tokens_mlp_dim)
-        y = self._spatial_mixing(nn.LayerNorm()(x), shape)
-        y = self._spatial_mixing(nn.gelu(y), shape[::-1])
-        x += y
-        y = nn.LayerNorm()(x)
-        return x + MlpBlock(self.channels_mlp_dim, name='channel_mixing')(y)
+        x += nn.Dense(nn.gelu(self._swap_dims(x, shape)))
+        x += nn.Dense(nn.gelu(self._swap_dims(x, shape)))
+        return x
 
 
 class MlpMixer(nn.Module):
