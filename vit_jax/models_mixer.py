@@ -45,7 +45,7 @@ class MixerBlock(nn.Module):
         """dimension_numbers: a tuple of tuples of the form
            `((lhs_contracting_dims, rhs_contracting_dims),
             (lhs_batch_dims, rhs_batch_dims))`"""
-        y = lax.dot_general(nn.LayerNorm(x),
+        y = lax.dot_general(nn.LayerNorm()(x),
                             self.param('kernel0', init, (patch, self.tokens_mlp_dim)),
                             (((1,), (0,)), ((), ())))
         y = lax.dot_general(nn.gelu(y + self.param('bias0', jnp.zeros, (self.tokens_mlp_dim,))),
