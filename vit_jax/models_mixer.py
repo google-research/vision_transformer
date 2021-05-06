@@ -14,55 +14,58 @@
 
 from typing import Any
 
-import einops
 import flax.linen as nn
 import jax.numpy as jnp
+import jax.lax as lax
+
+init = nn.initializers.lecun_normal()
 
 
 class MlpBlock(nn.Module):
-  mlp_dim: int
+    mlp_dim: int
 
-  @nn.compact
-  def __call__(self, x):
-    y = nn.Dense(self.mlp_dim)(x)
-    y = nn.gelu(y)
-    return nn.Dense(x.shape[-1])(y)
+    @nn.compact
+    def __call__(self, x):
+        y = nn.Dense(self.mlp_dim)(x)
+        y = nn.gelu(y)
+        return nn.Dense(x.shape[-1])(y)
 
 
 class MixerBlock(nn.Module):
-  """Mixer block layer."""
-  tokens_mlp_dim: int
-  channels_mlp_dim: int
+    """Mixer block layer."""
+    tokens_mlp_dim: int
+    channels_mlp_dim: int
 
-  @nn.compact
-  def __call__(self, x):
-    y = nn.LayerNorm()(x)
-    y = jnp.swapaxes(y, 1, 2)
-    y = MlpBlock(self.tokens_mlp_dim, name='token_mixing')(y)
-    y = jnp.swapaxes(y, 1, 2)
-    x = x + y
-    y = nn.LayerNorm()(x)
-    return x + MlpBlock(self.channels_mlp_dim, name='channel_mixing')(y)
+    @nn.compact
+    def __call__(self, x):
+        batch, patch, channel = x.shape
+        y = lax.xeinsum('npc,pb->nbc', nn.LayerNorm(x),
+                        self.param('kernel0', init, (channel, self.tokens_mlp_dim)))
+        y = lax.xeinsum('npc,pb->nbc', nn.gelu(y + self.param('bias0', jnp.zeros, (self.tokens_mlp_dim,))),
+                        self.param('kernel1', init, (self.tokens_mlp_dim, channel)))
+        x = x + y + self.param('bias1', jnp.zeros, (self.tokens_mlp_dim,))
+        return x + MlpBlock(self.channels_mlp_dim, name='channel_mixing')(nn.LayerNorm()(x))
 
 
 class MlpMixer(nn.Module):
-  """Mixer architecture."""
-  patches: Any
-  num_classes: int
-  num_blocks: int
-  hidden_dim: int
-  tokens_mlp_dim: int
-  channels_mlp_dim: int
+    """Mixer architecture."""
+    patches: Any
+    num_classes: int
+    num_blocks: int
+    hidden_dim: int
+    tokens_mlp_dim: int
+    channels_mlp_dim: int
 
-  @nn.compact
-  def __call__(self, inputs, *, train):
-    del train
-    x = nn.Conv(self.hidden_dim, self.patches.size,
-                strides=self.patches.size, name='stem')(inputs)
-    x = einops.rearrange(x, 'n h w c -> n (h w) c')
-    for _ in range(self.num_blocks):
-      x = MixerBlock(self.tokens_mlp_dim, self.channels_mlp_dim)(x)
-    x = nn.LayerNorm(name='pre_head_layer_norm')(x)
-    x = jnp.mean(x, axis=1)
-    return nn.Dense(self.num_classes, kernel_init=nn.initializers.zeros,
-                    name='head')(x)
+    @nn.compact
+    def __call__(self, inputs, *, train):
+        del train
+        x = nn.Conv(self.hidden_dim, self.patches.size,
+                    strides=self.patches.size, name='stem')(inputs)
+        n, h, w, c = x.shape
+        x = jnp.reshape(x, (n, h * w, c))
+        for _ in range(self.num_blocks):
+            x = MixerBlock(self.tokens_mlp_dim, self.channels_mlp_dim)(x)
+        x = nn.LayerNorm(name='pre_head_layer_norm')(x)
+        x = jnp.mean(x, axis=1)
+        return nn.Dense(self.num_classes, kernel_init=nn.initializers.zeros,
+                        name='head')(x)
