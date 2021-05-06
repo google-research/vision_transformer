@@ -38,14 +38,15 @@ class SpatialDense(nn.Module):
 
 class MlpBlock(nn.Module):
     mlp_dim: int
-    dense: nn.Module = nn.Dense
+    spatial: bool
 
     @nn.compact
     def __call__(self, x):
+        dense = SpatialDense if self.spatial else nn.Dense
         y = nn.LayerNorm()(x)
-        y = self.dense(self.mlp_dim)(y)
+        y = dense(self.mlp_dim)(y)
         y = nn.gelu(y)
-        return self.dense(x.shape[-1])(y)
+        return dense(x.shape[-1 - int(self.spatial)])(y)
 
 
 class MixerBlock(nn.Module):
@@ -55,8 +56,8 @@ class MixerBlock(nn.Module):
 
     @nn.compact
     def __call__(self, x):
-        x += MlpBlock(self.tokens_mlp_dim, SpatialDense)(x)
-        x += MlpBlock(self.channels_mlp_dim, nn.Dense)(x)
+        x += MlpBlock(self.tokens_mlp_dim, True)(x)
+        x += MlpBlock(self.channels_mlp_dim, False)(x)
         return x
 
 
