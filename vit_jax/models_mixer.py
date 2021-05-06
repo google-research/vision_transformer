@@ -15,6 +15,7 @@
 from typing import Any
 
 import flax.linen as nn
+import jax.nn.initializers
 import jax.numpy as jnp
 import jax.lax as lax
 
@@ -39,7 +40,8 @@ class MixerBlock(nn.Module):
     def _spatial_mixing(self, inp, patch, cnt):
         weight = self.param(f'kernel{cnt}', init, (patch, self.tokens_mlp_dim))
         out = lax.dot_general(inp, weight, (((1,), (0,)), ((), ())))
-        out += self.param(f'bias{cnt}', jnp.zeros, (1, self.tokens_mlp_dim, 1))
+        out += self.param(f'bias{cnt}', jax.nn.initializers.zeros,
+                          (1, self.tokens_mlp_dim, 1))
         return out
 
     @nn.compact
