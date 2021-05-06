@@ -51,7 +51,7 @@ class MixerBlock(nn.Module):
         shape = (spatial, self.tokens_mlp_dim)
         y = self._spatial_dense(nn.LayerNorm()(x), shape)
         x += self._spatial_dense(nn.gelu(y), shape[::-1])
-        return x + MlpBlock(nn.LayerNorm()(x))
+        return x + MlpBlock()(nn.LayerNorm()(x))
 
 
 class MlpMixer(nn.Module):
