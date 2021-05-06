@@ -48,7 +48,7 @@ class MixerBlock(nn.Module):
         y = lax.dot_general(nn.LayerNorm()(x),
                             self.param('kernel0', init, (patch, self.tokens_mlp_dim)),
                             (((1,), (0,)), ((), ())))
-        y = lax.dot_general(nn.gelu(y + self.param('bias0', jnp.zeros, (self.tokens_mlp_dim,))),
+        y = lax.dot_general(nn.gelu(y + self.param('bias0', jax.nn.initializers.zeros, (self.tokens_mlp_dim,))),
                             self.param('kernel1', init, (self.tokens_mlp_dim, patch)),
                             (((1,), (0,)), ((), ())))
         x = x + y + self.param('bias1', jnp.zeros, (self.tokens_mlp_dim,))
