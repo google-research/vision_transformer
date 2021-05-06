@@ -41,10 +41,16 @@ class MixerBlock(nn.Module):
     @nn.compact
     def __call__(self, x):
         batch, patch, channel = x.shape
-        y = jnp.einsum('npc,pb->nbc', nn.LayerNorm(x),
-                       self.param('kernel0', init, (patch, self.tokens_mlp_dim)))
-        y = jnp.einsum('npc,pb->nbc', nn.gelu(y + self.param('bias0', jnp.zeros, (self.tokens_mlp_dim,))),
-                       self.param('kernel1', init, (self.tokens_mlp_dim, patch)))
+
+        """dimension_numbers: a tuple of tuples of the form
+           `((lhs_contracting_dims, rhs_contracting_dims),
+            (lhs_batch_dims, rhs_batch_dims))`"""
+        y = lax.dot_general(nn.LayerNorm(x),
+                            self.param('kernel0', init, (patch, self.tokens_mlp_dim)),
+                            (((1,), (0,)), ((), ())))
+        y = lax.dot_general(nn.gelu(y + self.param('bias0', jnp.zeros, (self.tokens_mlp_dim,))),
+                            self.param('kernel0', init, (self.tokens_mlp_dim, patch)),
+                            (((1,), (0,)), ((), ())))
         x = x + y + self.param('bias1', jnp.zeros, (self.tokens_mlp_dim,))
         return x + MlpBlock(self.channels_mlp_dim, name='channel_mixing')(nn.LayerNorm()(x))
 
