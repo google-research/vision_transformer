@@ -40,7 +40,7 @@ class MixerBlock(nn.Module):
     def _swap_dims(self, inp, shape):
         out = nn.LayerNorm()(inp)
         weight = self.param(f'kernel{shape[0]}', init, shape)
-        out = lax.dot_general(out, weight, (((1,), (0,)), ((), ())))
+        out = lax.dot_general(weight, out, (((0,), (1,)), ((), (0,))))
         out += self.param(f'bias{shape[0]}', jax.nn.initializers.zeros,
                           (1, 1, shape[1]))
         return out
