@@ -30,7 +30,7 @@ class ResMlpBlock(nn.Module):
         y = nn.LayerNorm()(x)
         y = dense(self.mlp_dim, 1)(y)
         y = nn.gelu(y)
-        y = dense(x.shape[-1 - int(self.spatial)], 1)(y)
+        y = dense(x.shape[1 if self.spatial else -1], 1)(y)
         return x + y
 
 
