@@ -34,18 +34,6 @@ class ResMlpBlock(nn.Module):
         return x + y
 
 
-class MixerBlock(nn.Module):
-    """Mixer block layer."""
-    tokens_mlp_dim: int
-    channels_mlp_dim: int
-
-    @nn.compact
-    def __call__(self, x):
-        x = ResMlpBlock(self.tokens_mlp_dim, True)(x)
-        x = ResMlpBlock(self.channels_mlp_dim, False)(x)
-        return x
-
-
 class MlpMixer(nn.Module):
     """Mixer architecture."""
     patches: Any
@@ -63,7 +51,8 @@ class MlpMixer(nn.Module):
         n, h, w, c = x.shape
         x = jnp.reshape(x, (n, h * w, c))
         for _ in range(self.num_blocks):
-            x = MixerBlock(self.tokens_mlp_dim, self.channels_mlp_dim)(x)
+            x = ResMlpBlock(self.tokens_mlp_dim, True)(x)
+            x = ResMlpBlock(self.channels_mlp_dim, False)(x)
         x = nn.LayerNorm(name='pre_head_layer_norm')(x)
         x = jnp.mean(x, axis=1)
         return nn.Dense(self.num_classes, kernel_init=nn.initializers.zeros,
