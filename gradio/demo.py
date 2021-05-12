@@ -20,7 +20,7 @@ outputs = gr.outputs.Textbox(label="Output Text")
 
 title = "VIT"
 description = "demo for Google VIT. To use it, simply upload your image, or click one of the examples to load them. Read more at the links below."
-article = "<p style='text-align: center'><a href='https://openai.com/blog/clip/'>CLIP: Connecting Text and Images</a> | <a href='https://github.com/openai/CLIP'>Github Repo</a></p>"
+article = "<p style='text-align: center'><a href='https://arxiv.org/abs/2010.11929'>An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale</a> | <a href='https://github.com/google-research/vision_transformer'>Github Repo</a></p>"
 
 
 
