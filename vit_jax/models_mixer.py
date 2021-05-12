@@ -16,8 +16,16 @@ from typing import Any
 
 import flax.linen as nn
 import jax.numpy as jnp
+from jax import lax
 
 init = nn.initializers.lecun_normal()
+
+
+def conv_dimension_numbers(_):
+    return lax.ConvDimensionNumbers((0, 1, 2), (2, 1, 0), (0, 1, 2))
+
+
+nn.linear._conv_dimension_numbers = conv_dimension_numbers
 
 
 class ResMlpBlock(nn.Module):
@@ -51,10 +59,12 @@ class MlpMixer(nn.Module):
     @nn.compact
     def __call__(self, inputs, *, train):
         del train
-        x = nn.Conv(self.hidden_dim, self.patches.size,
-                    strides=self.patches.size, name='stem')(inputs)
-        n, h, w, c = x.shape
-        x = jnp.reshape(x, (n, h * w, c))
+        psize = self.patches.size
+        n, h, w, c = inputs.shape
+        x = jnp.reshape(inputs, (n, h // psize, psize, w // psize, psize, c))
+        x = jnp.transpose(x, (0, 1, 3, 2, 4, 5))
+        x = jnp.reshape(x, (n, h * w // psize ** 2, c * psize ** 2))
+        x = nn.Dense(self.hidden_dim, name='stem')(x)
         for _ in range(self.num_blocks):
             x = ResMlpBlock(self.tokens_mlp_dim, True)(x)
             x = ResMlpBlock(self.channels_mlp_dim, False)(x)
