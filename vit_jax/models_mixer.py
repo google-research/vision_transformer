@@ -17,6 +17,7 @@ from typing import Any
 import flax.linen as nn
 import jax.numpy as jnp
 from jax import lax
+import einops
 
 init = nn.initializers.lecun_normal()
 
@@ -59,11 +60,9 @@ class MlpMixer(nn.Module):
     @nn.compact
     def __call__(self, inputs, *, train):
         del train
-        psize = self.patches.size
-        n, h, w, c = inputs.shape
-        x = jnp.reshape(inputs, (n, h // psize, psize, w // psize, psize, c))
-        x = jnp.transpose(x, (0, 1, 3, 2, 4, 5))
-        x = jnp.reshape(x, (n, h * w // psize ** 2, c * psize ** 2))
+        ph, pw = self.patches.size
+        x = einops.rearrange(inputs, 'b (h ph) (w pw) c -> b (h w) (ph pw c)',
+                             ph=ph, pw=pw)
         x = nn.Dense(self.hidden_dim, name='stem')(x)
         for _ in range(self.num_blocks):
             x = ResMlpBlock(self.tokens_mlp_dim, True)(x)
