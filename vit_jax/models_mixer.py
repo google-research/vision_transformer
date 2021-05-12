@@ -21,6 +21,11 @@ init = nn.initializers.lecun_normal()
 
 
 class ResMlpBlock(nn.Module):
+    """
+    MLP with input norm.
+    Dense layers are either across spatial or feature dimension.
+    Residual is added within the block
+    """
     mlp_dim: int
     spatial: bool
 
