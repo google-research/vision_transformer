@@ -20,7 +20,7 @@ import jax.numpy as jnp
 init = nn.initializers.lecun_normal()
 
 
-class MlpBlock(nn.Module):
+class ResMlpBlock(nn.Module):
     mlp_dim: int
     spatial: bool
 
@@ -30,7 +30,8 @@ class MlpBlock(nn.Module):
         y = nn.LayerNorm()(x)
         y = dense(self.mlp_dim, 1)(y)
         y = nn.gelu(y)
-        return dense(x.shape[-1 - int(self.spatial)], 1)(y)
+        y = dense(x.shape[-1 - int(self.spatial)], 1)(y)
+        return y + x
 
 
 class MixerBlock(nn.Module):
@@ -40,8 +41,8 @@ class MixerBlock(nn.Module):
 
     @nn.compact
     def __call__(self, x):
-        x += MlpBlock(self.tokens_mlp_dim, True)(x)
-        x += MlpBlock(self.channels_mlp_dim, False)(x)
+        x = ResMlpBlock(self.tokens_mlp_dim, True)(x)
+        x = ResMlpBlock(self.channels_mlp_dim, False)(x)
         return x
 
 
