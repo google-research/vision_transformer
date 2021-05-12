@@ -31,7 +31,7 @@ class ResMlpBlock(nn.Module):
         y = dense(self.mlp_dim, 1)(y)
         y = nn.gelu(y)
         y = dense(x.shape[-1 - int(self.spatial)], 1)(y)
-        return y + x
+        return x + y
 
 
 class MixerBlock(nn.Module):
