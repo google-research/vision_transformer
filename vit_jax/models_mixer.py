@@ -15,25 +15,9 @@
 from typing import Any
 
 import flax.linen as nn
-import jax.nn.initializers
 import jax.numpy as jnp
-import jax.lax as lax
 
 init = nn.initializers.lecun_normal()
-
-
-class SpatialDense(nn.Module):
-    mlp_dim: int
-
-    @nn.compact
-    def __call__(self, x):
-        batch, space, *_ = x.shape
-        weight = self.param(f'kernel', init, (space, self.mlp_dim))
-        weight = lax.broadcast(weight, (batch,))
-        out = lax.dot_general(weight, x, (((1,), (1,)), ((0,), (0,))))
-        out += self.param(f'bias', jax.nn.initializers.zeros,
-                          (1, self.mlp_dim, 1))
-        return out
 
 
 class MlpBlock(nn.Module):
@@ -42,11 +26,11 @@ class MlpBlock(nn.Module):
 
     @nn.compact
     def __call__(self, x):
-        dense = SpatialDense if self.spatial else nn.Dense
+        dense = nn.Conv if self.spatial else nn.Dense
         y = nn.LayerNorm()(x)
-        y = dense(self.mlp_dim)(y)
+        y = dense(self.mlp_dim, 1)(y)
         y = nn.gelu(y)
-        return dense(x.shape[-1 - int(self.spatial)])(y)
+        return dense(x.shape[-1 - int(self.spatial)], 1)(y)
 
 
 class MixerBlock(nn.Module):
