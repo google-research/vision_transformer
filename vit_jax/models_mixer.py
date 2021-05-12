@@ -15,18 +15,25 @@
 from typing import Any
 
 import flax.linen as nn
+import jax
 import jax.numpy as jnp
 from jax import lax
-import einops
 
 init = nn.initializers.lecun_normal()
 
 
-def conv_dimension_numbers(_):
-    return lax.ConvDimensionNumbers((0, 1, 2), (2, 1, 0), (0, 1, 2))
+class SpatialDense(nn.Module):
+    mlp_dim: int
 
-
-nn.linear._conv_dimension_numbers = conv_dimension_numbers
+    @nn.compact
+    def __call__(self, x):
+        batch, space, *_ = x.shape
+        weight = self.param(f'kernel', init, (space, self.mlp_dim))
+        weight = lax.broadcast(weight, (batch,))
+        out = lax.dot_general(weight, x, (((1,), (1,)), ((0,), (0,))))
+        out += self.param(f'bias', jax.nn.initializers.zeros,
+                          (1, self.mlp_dim, 1))
+        return out
 
 
 class ResMlpBlock(nn.Module):
@@ -40,11 +47,11 @@ class ResMlpBlock(nn.Module):
 
     @nn.compact
     def __call__(self, x):
-        dense = nn.Conv if self.spatial else nn.Dense
+        dense = SpatialDense if self.spatial else nn.Dense
         y = nn.LayerNorm()(x)
-        y = dense(self.mlp_dim, 1)(y)
+        y = dense(self.mlp_dim)(y)
         y = nn.gelu(y)
-        y = dense(x.shape[1 if self.spatial else -1], 1)(y)
+        y = dense(x.shape[1 if self.spatial else -1])(y)
         return x + y
 
 
@@ -60,10 +67,10 @@ class MlpMixer(nn.Module):
     @nn.compact
     def __call__(self, inputs, *, train):
         del train
-        ph, pw = self.patches.size
-        x = einops.rearrange(inputs, 'b (h ph) (w pw) c -> b (h w) (ph pw c)',
-                             ph=ph, pw=pw)
-        x = nn.Dense(self.hidden_dim, name='stem')(x)
+        x = nn.Conv(self.hidden_dim, self.patches.size,
+                    strides=self.patches.size, name='stem')(inputs)
+        n, h, w, c = x.shape
+        x = jnp.reshape(x, (n, h * w, c))
         for _ in range(self.num_blocks):
             x = ResMlpBlock(self.tokens_mlp_dim, True)(x)
             x = ResMlpBlock(self.channels_mlp_dim, False)(x)
