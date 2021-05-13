@@ -43,6 +43,11 @@ Note that the Colab can be run as is storing all data in the ephemeral VM, or,
 alternatively you can log into your personal Google Drive to persist the code
 and data there.
 
+## Gradio Web Demo
+
+[Web Demo](https://gradio.app/g/AK391/vision_transformer).
+
+
 ## Installation
 
 Make sure you have `Python>=3.6` installed on your machine.
