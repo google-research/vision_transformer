@@ -2,7 +2,7 @@ absl-py>=0.12.0
 chex>=0.0.7
 clu>=0.0.3
 einops>=0.3.0
-flax==0.2.2
+flax==0.3.3
 ml-collections==0.1.0
 numpy>=1.19.5
 tensorflow-cpu>=2.4.0  # Using tensorflow-cpu to have all GPU memory for JAX.
