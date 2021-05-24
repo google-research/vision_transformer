@@ -53,6 +53,8 @@ def get_config():
   config.eval_every = 100
   # Log progress every so many steps.
   config.progress_every = 10
+  # How often to write checkpoints. Specifying 0 disables checkpointing.
+  config.checkpoint_every = 1_000
 
   # Number of batches to prefetch to device.
   config.prefetch = 2

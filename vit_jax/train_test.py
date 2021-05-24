@@ -30,8 +30,6 @@ from vit_jax.configs import models
 class TrainTest(absltest.TestCase):
 
   def test_train_and_evaluate(self):
-    workdir = tempfile.gettempdir()
-
     config = common.get_config()
     config.model = models.get_testing_config()
     config.dataset = 'cifar10'
@@ -41,11 +39,14 @@ class TrainTest(absltest.TestCase):
     config.accum_steps = 2
     config.batch_eval = 8
     config.total_steps = 1
-    config.pretrained_dir = workdir
 
-    test_utils.create_checkpoint(config.model, f'{workdir}/testing.npz')
-    opt_pmap = train.train_and_evaluate(config, workdir)
-    self.assertTrue(os.path.exists(f'{workdir}/model.npz'))
+    with tempfile.TemporaryDirectory() as workdir:
+
+      config.pretrained_dir = workdir
+      test_utils.create_checkpoint(config.model, f'{workdir}/testing.npz')
+
+      opt_pmap = train.train_and_evaluate(config, workdir)
+      self.assertTrue(os.path.exists(f'{workdir}/checkpoint_1'))
 
 
 if __name__ == '__main__':

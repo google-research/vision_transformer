@@ -19,6 +19,7 @@ import time
 from absl import logging
 from clu import metric_writers
 import flax
+from flax.training import checkpoints as flax_checkpoints
 import jax
 import jax.numpy as jnp
 import ml_collections
@@ -135,6 +136,12 @@ def train_and_evaluate(config: ml_collections.ConfigDict, workdir: str):
   opt = momentum_clip.Optimizer(
       dtype=config.optim_dtype,
       grad_norm_clip=config.grad_norm_clip).create(params)
+
+  initial_step = 1
+  opt, initial_step = flax_checkpoints.restore_checkpoint(
+      workdir, (opt, initial_step))
+  logging.info('Will start/continue training at initial_step=%d', initial_step)
+
   opt_repl = flax.jax_utils.replicate(opt)
 
   # Delete references to the objects that are not needed anymore
@@ -150,14 +157,15 @@ def train_and_evaluate(config: ml_collections.ConfigDict, workdir: str):
   logging.info('Starting training loop; initial compile can take a while...')
   t0 = lt0 = time.time()
 
+  step = lstep = initial_step
   for step, batch in zip(
-      range(1, total_steps + 1),
+      range(initial_step, total_steps + 1),
       input_pipeline.prefetch(ds_train, config.prefetch)):
 
     opt_repl, loss_repl, update_rng_repl = update_fn_repl(
         opt_repl, flax.jax_utils.replicate(step), batch, update_rng_repl)
 
-    if step == 1:
+    if step == initial_step:
       logging.info('First step took %.1f seconds.', time.time() - t0)
       t0 = time.time()
       lt0, lstep = time.time(), step
@@ -208,9 +216,12 @@ def train_and_evaluate(config: ml_collections.ConfigDict, workdir: str):
               lr=lr,
               img_sec_core_test=img_sec_core_test))
 
-  opt = flax.jax_utils.unreplicate(opt_repl)
-  del opt_repl
-  checkpoint.save(opt.target, f'{workdir}/model.npz')
-  logging.info('Stored fine tuned checkpoint to %s', workdir)
+    # Store checkpoint.
+    if ((config.checkpoint_every and step % config.eval_every == 0) or
+        step == total_steps):
+      checkpoint_path = flax_checkpoints.save_checkpoint(
+          workdir, (flax.jax_utils.unreplicate(opt_repl), step), step)
+      logging.info('Stored checkpoint at step %d to "%s"', step,
+                   checkpoint_path)
 
-  return opt
+  return flax.jax_utils.unreplicate(opt_repl)
