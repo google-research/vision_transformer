@@ -18,6 +18,22 @@ Open source release prepared by Andreas Steiner.
 Note: This repository was forked and modified from
 [google-research/big_transfer](https://github.com/google-research/big_transfer).
 
+
+## Colab
+
+We prepared a Colab that walks you through loadiing data from `tfds`, evaluating
+a model, downloading pre-trained weights, fine-tuning, and inference on
+individual images.
+
+The Colab works demonstrates the use of both Vision Transformers and MLP Mixers,
+and works with GPU and TPU (8 cores, data parallelism) runtimes:
+
+https://colab.research.google.com/github/google-research/vision_transformer/blob/master/vit_jax.ipynb
+
+Note that the Colab can be run as is storing all data in the ephemeral VM, or,
+alternatively you can log into your personal Google Drive to persist the code
+and data there.
+
 ## Vision Transformer
 
 by Alexey Dosovitskiy\*†, Lucas Beyer\*, Alexander Kolesnikov\*, Dirk
@@ -34,19 +50,7 @@ vectors to a standard Transformer encoder. In order to perform classification,
 we use the standard approach of adding an extra learnable "classification token"
 to the sequence.
 
-## Colab
-
-Check out the Colab for loading the data, fine-tuning the ViT model, its
-evaluation, and inference. The Colab loads the code from this repository and
-runs by default on a TPU with 8 cores.
-
-https://colab.research.google.com/github/google-research/vision_transformer/blob/master/vit_jax.ipynb
-
-Note that the Colab can be run as is storing all data in the ephemeral VM, or,
-alternatively you can log into your personal Google Drive to persist the code
-and data there.
-
-## Installation
+### Installation
 
 Make sure you have `Python>=3.6` installed on your machine.
 
@@ -59,7 +63,7 @@ Then, install python dependencies by running:
 pip install -r vit_jax/requirements.txt
 ```
 
-## Available ViT models
+### Available ViT models
 
 We provide models pre-trained on imagenet21k for the following architectures:
 ViT-B/16, ViT-B/32, ViT-L/16 and ViT-L/32. We  provide the same models
@@ -93,7 +97,7 @@ imagenet21k run the following command:
 wget https://storage.googleapis.com/vit_models/imagenet21k/ViT-B_16.npz
 ```
 
-## How to fine-tune ViT
+### How to fine-tune ViT
 
 You can run fine-tuning of the downloaded model on your dataset of interest. All
 frameworks share the command line interface
@@ -127,7 +131,7 @@ Notes about some flags:
 -   `--config.batch=512` : Alternatively, you can decrease the batch size, but
     that usually involves some tuning of the learning rate parameters.
 
-## Expected results
+### Expected results
 
 Table below runs experiments both with `transformer.dropout_rate=0.1` (as in the
 ViT paper), and with `transformer.dropout_rate=0.0`, which improves results
@@ -183,7 +187,7 @@ classifier head.
 
 For installation follow [the same steps](#installation) as above.
 
-## Available Mixer models
+### Available Mixer models
 
 We provide the Mixer-B/16 and Mixer-L/16 models pre-trained on the ImageNet and
 ImageNet-21k datasets. Details can be found in Table 3 of the Mixer paper. All
@@ -191,11 +195,7 @@ the models can be found at:
 
 https://console.cloud.google.com/storage/mixer_models/
 
-## Colab
-
-**Note**: We will soon extend the colab with Mixer examples.
-
-## Fine-tuning Mixer models
+### Fine-tuning Mixer models
 
 The following command will load the Mixer-B/16 model pre-trained on ImageNet-21k
 and fine-tune it on CIFAR-10 at resolution 224:
@@ -210,7 +210,7 @@ to use the Mixer-L/16 model. More details (including how to fine-tune on other
 datasets) can be found in the
 [section describing fine-tuning for ViT](#how-to-fine-tune-vit).
 
-## Reproducing Mixer results on CIFAR-10
+### Reproducing Mixer results on CIFAR-10
 
 We ran the fine-tuning code on Google Cloud machine with four V100 GPUs with the
 default adaption parameters from this repository. Here are the results:
