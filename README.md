@@ -18,19 +18,18 @@ if that's what you came for.
 
 Table of contents:
 
-- [Vision Transformer and MLP-Mixer Architectures for Vision](#vision-transformer-and-mlp-mixer-architectures-for-vision)
-	- [Colab](#colab)
-	- [Installation](#installation)
-	- [Fine-tuning a model](#fine-tuning-a-model)
-	- [Vision Transformer](#vision-transformer)
-		- [Available ViT models](#available-vit-models)
-		- [Expected ViT results](#expected-vit-results)
-	- [MLP-Mixer](#mlp-mixer)
-		- [Available Mixer models](#available-mixer-models)
-		- [Expected Mixer results](#expected-mixer-results)
-	- [Running on cloud](#running-on-cloud)
-	- [Bibtex](#bibtex)
-	- [Disclaimers](#disclaimers)
+- [Colab](#colab)
+- [Installation](#installation)
+- [Fine-tuning a model](#fine-tuning-a-model)
+- [Vision Transformer](#vision-transformer)
+	- [Available ViT models](#available-vit-models)
+	- [Expected ViT results](#expected-vit-results)
+- [MLP-Mixer](#mlp-mixer)
+	- [Available Mixer models](#available-mixer-models)
+	- [Expected Mixer results](#expected-mixer-results)
+- [Running on cloud](#running-on-cloud)
+- [Bibtex](#bibtex)
+- [Disclaimers](#disclaimers)
 
 
 ## Colab
@@ -252,7 +251,7 @@ You can use the following commands to setup a VM with GPUs on Google Cloud:
 # Note that project must have accounting set up.
 # For a list of zones with GPUs refer to
 # https://cloud.google.com/compute/docs/gpus/gpu-regions-zones
-PROJECT=
+PROJECT=my-awesome-gcp-project
 VM_NAME=vit-jax-vm
 ZONE=europe-west4-b
 
@@ -277,16 +276,8 @@ gcloud compute ssh --project $PROJECT --zone $ZONE $VM_NAME
 gcloud compute instances delete --project $PROJECT --zone $ZONE $VM_NAME
 ```
 
-Inside a VM you first have to install JAX:
-
-```bash
-pip3 install --upgrade jax jaxlib \
-    -f https://storage.googleapis.com/jax-releases/jax_releases.html
-# Now this should show the attached accelerators:
-python3 -c 'import jax; print(jax.devices())'
-```
-
-And then fetch the repository and the install dependencies as usual:
+And then fetch the repository and the install dependencies (including `jaxlib`
+with TPU support) as usual:
 
 ```bash
 git clone https://github.com/google-research/vision_transformer
@@ -294,6 +285,8 @@ cd vision_transformer
 pip3 install virtualenv
 python3 -m virtualenv env
 . env/bin/activate
+pip3 install --upgrade jax jaxlib \
+    -f https://storage.googleapis.com/jax-releases/jax_releases.html
 pip install -r vit_jax/requirements.txt
 python
 ```
