@@ -1,5 +1,8 @@
 # Vision Transformer and MLP-Mixer Architectures for Vision
 
+**Update (15.6.2021)**: This repository was rewritten to use Flax Linen API and
+`ml_collections.ConfigDict` for configuration.
+
 In this repository we release models from the papers
 [An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale](https://arxiv.org/abs/2010.11929)
 and
@@ -15,18 +18,19 @@ if that's what you came for.
 
 Table of contents:
 
-- [Colab](#colab)
-- [Installation](#installation)
-- [Fine-tuning a model](#fine-tuning-a-model)
-- [Vision Transformer](#vision-transformer)
-  - [Available ViT models](#available-vit-models)
-  - [Expected ViT results](#expected-vit-results)
-- [MLP-Mixer](#mlp-mixer)
-  - [Available Mixer models](#available-mixer-models)
-  - [Expected Mixer results](#expected-mixer-results)
-- [Running on cloud](#running-on-cloud)
-- [Bibtex](#bibtex)
-- [Disclaimers](#disclaimers)
+- [Vision Transformer and MLP-Mixer Architectures for Vision](#vision-transformer-and-mlp-mixer-architectures-for-vision)
+	- [Colab](#colab)
+	- [Installation](#installation)
+	- [Fine-tuning a model](#fine-tuning-a-model)
+	- [Vision Transformer](#vision-transformer)
+		- [Available ViT models](#available-vit-models)
+		- [Expected ViT results](#expected-vit-results)
+	- [MLP-Mixer](#mlp-mixer)
+		- [Available Mixer models](#available-mixer-models)
+		- [Expected Mixer results](#expected-mixer-results)
+	- [Running on cloud](#running-on-cloud)
+	- [Bibtex](#bibtex)
+	- [Disclaimers](#disclaimers)
 
 
 ## Colab
