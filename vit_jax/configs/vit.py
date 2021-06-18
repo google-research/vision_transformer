@@ -12,6 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+r"""Fine-tunes a Vision Transformer.
+
+Example for fine-tuning a ViT-B/16 on CIFAR10:
+
+python -m vit_jax.main --workdir=/tmp/vit \
+    --config=$(pwd)/vit_jax/configs/vit.py:b16,cifar10 \
+    --config.pretrained_dir='gs://vit_models/imagenet21k'
+"""
+
 from vit_jax.configs import common
 from vit_jax.configs import models
 

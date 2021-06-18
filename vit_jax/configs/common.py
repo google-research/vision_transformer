@@ -69,7 +69,15 @@ def get_config():
   # Alternatives : inference_time.
   config.trainer = 'train'
 
-  return config
+  # Will be set from ./models.py
+  config.model = None
+  # Only used in ./augreg.py configs
+  config.model_or_filename = None
+  # Must be set via `with_dataset()`
+  config.dataset = None
+  config.pp = None
+
+  return config.lock()
 
 
 # We leave out a subset of training for validation purposes (if needed).

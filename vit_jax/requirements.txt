@@ -5,6 +5,7 @@ einops>=0.3.0
 flax==0.3.3
 ml-collections==0.1.0
 numpy>=1.19.5
+pandas>=1.1.0
 tensorflow-cpu>=2.4.0  # Using tensorflow-cpu to have all GPU memory for JAX.
 tensorflow-datasets>=4.0.1
 tensorflow-probability>=0.11.1

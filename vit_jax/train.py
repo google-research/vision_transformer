@@ -18,6 +18,7 @@ import time
 
 from absl import logging
 from clu import metric_writers
+from clu import periodic_actions
 import flax
 from flax.training import checkpoints as flax_checkpoints
 import jax
@@ -111,8 +112,29 @@ def train_and_evaluate(config: ml_collections.ConfigDict, workdir: str):
   # Use JIT to make sure params reside in CPU memory.
   variables = jax.jit(init_model, backend='cpu')()
 
-  pretrained_path = os.path.join(config.pretrained_dir,
-                                 f'{config.model.name}.npz')
+  model_or_filename = config.get('model_or_filename')
+  if model_or_filename:
+    # Loading model from repo published with  "How to train your ViT? Data,
+    # Augmentation, and Regularization in Vision Transformers" paper.
+    if '-' in model_or_filename:
+      filename = model_or_filename
+    else:
+      # Select best checkpoint from i21k pretraining by final upstream
+      # validation accuracy.
+      df = checkpoint.get_augreg_df(directory=config.pretrained_dir)
+      sel = df.filename.apply(
+          lambda filename: filename.split('-')[0] == model_or_filename)
+      best = df.loc[sel].query('ds=="i21k"').sort_values('final_val').iloc[-1]
+      filename = best.filename
+      logging.info('Selected fillename="%s" for "%s" with final_val=%.3f',
+                   filename, model_or_filename, best.final_val)
+    pretrained_path = os.path.join(config.pretrained_dir,
+                                   f'{config.model.name}.npz')
+  else:
+    # ViT / Mixer papers
+    filename = config.model.name
+
+  pretrained_path = os.path.join(config.pretrained_dir, f'{filename}.npz')
   if not tf.io.gfile.exists(pretrained_path):
     raise ValueError(
         f'Could not find "{pretrained_path}" - you can download models from '
@@ -158,12 +180,20 @@ def train_and_evaluate(config: ml_collections.ConfigDict, workdir: str):
   t0 = lt0 = time.time()
 
   step = lstep = initial_step
+  hooks = [
+      periodic_actions.Profile(logdir=workdir),
+      periodic_actions.ReportProgress(
+          num_train_steps=total_steps, writer=writer),
+  ]
   for step, batch in zip(
       range(initial_step, total_steps + 1),
       input_pipeline.prefetch(ds_train, config.prefetch)):
 
-    opt_repl, loss_repl, update_rng_repl = update_fn_repl(
-        opt_repl, flax.jax_utils.replicate(step), batch, update_rng_repl)
+    with jax.profiler.StepTraceContext('train', step_num=step):
+      opt_repl, loss_repl, update_rng_repl = update_fn_repl(
+          opt_repl, flax.jax_utils.replicate(step), batch, update_rng_repl)
+    for hook in hooks:
+      hook(step)
 
     if step == initial_step:
       logging.info('First step took %.1f seconds.', time.time() - t0)

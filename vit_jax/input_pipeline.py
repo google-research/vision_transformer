@@ -69,6 +69,10 @@ def get_data(*,
     tfds_data_dir: Optional directory where tfds datasets are stored. If not
       specified, datasets are downloaded and in the default tfds data_dir on the
       local machine.
+    tfds_manual_dir: The `manual_dir` arg to `tfds.download.DownloadConfig()`.
+      This argument is mainly used for `imagenet2012` dataset because that one
+      cannot be downloaded automatically. Instead one would first download the
+      files and then provide the download directory as `tfds_manual_dir`.
     inception_crop: If set to True, tf.image.sample_distorted_bounding_box()
       will be used. If set to False, tf.image.random_crop() will be used.
   """
