@@ -1,35 +1,32 @@
 # Vision Transformer and MLP-Mixer Architectures for Vision
 
-**Update (15.6.2021)**: This repository was rewritten to use Flax Linen API and
+**Update (18.6.2021)**: This repository was rewritten to use Flax Linen API and
 `ml_collections.ConfigDict` for configuration.
 
 In this repository we release models from the papers
 [An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale](https://arxiv.org/abs/2010.11929)
 and
 [MLP-Mixer: An all-MLP Architecture for Vision](https://arxiv.org/abs/2105.01601)
-that were pre-trained on the [ImageNet](http://www.image-net.org/) (`imagenet`)
-and [ImageNet-21k](http://www.image-net.org/) (`imagenet21k`) datasets. We
+that were pre-trained on the [ImageNet](http://www.image-net.org/) (imagenet)
+and [ImageNet-21k](http://www.image-net.org/) (imagenet21k) datasets. We
 provide the code for fine-tuning the released models in
 [Jax](https://jax.readthedocs.io)/[Flax](http://flax.readthedocs.io).
 
-First we describe the [Vision Transformer (ViT)](#vision-transformer) models.
-Feel free to [jump to the section describing the MLP-Mixer models](#mlp-mixer)
-if that's what you came for.
-
 Table of contents:
 
-- [Colab](#colab)
-- [Installation](#installation)
-- [Fine-tuning a model](#fine-tuning-a-model)
-- [Vision Transformer](#vision-transformer)
-	- [Available ViT models](#available-vit-models)
-	- [Expected ViT results](#expected-vit-results)
-- [MLP-Mixer](#mlp-mixer)
-	- [Available Mixer models](#available-mixer-models)
-	- [Expected Mixer results](#expected-mixer-results)
-- [Running on cloud](#running-on-cloud)
-- [Bibtex](#bibtex)
-- [Disclaimers](#disclaimers)
+- [Vision Transformer and MLP-Mixer Architectures for Vision](#vision-transformer-and-mlp-mixer-architectures-for-vision)
+	- [Colab](#colab)
+	- [Installation](#installation)
+	- [Fine-tuning a model](#fine-tuning-a-model)
+	- [Vision Transformer](#vision-transformer)
+		- [Available ViT models](#available-vit-models)
+		- [Expected ViT results](#expected-vit-results)
+	- [MLP-Mixer](#mlp-mixer)
+		- [Available Mixer models](#available-mixer-models)
+		- [Expected Mixer results](#expected-mixer-results)
+	- [Running on cloud](#running-on-cloud)
+	- [Bibtex](#bibtex)
+	- [Disclaimers](#disclaimers)
 
 
 ## Colab
