@@ -11,3 +11,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from vit_jax.configs import common
+from vit_jax.configs import models
+
+
+def get_config(model_dataset):
+  """Returns default parameters for finetuning ViT `model` on `dataset`."""
+  model, dataset = model_dataset.split(',')
+  config = common.with_dataset(common.get_config(), 'cifar10')
+  get_model_config = getattr(models, f'get_{model}_config')
+  config.model = get_model_config()
+
+  if model == 'b16' and dataset == 'cifar10':
+    config.base_lr = 0.01
+
+  return config

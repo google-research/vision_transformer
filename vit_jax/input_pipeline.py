@@ -1,10 +1,10 @@
-# Copyright 2020 Google LLC
+# Copyright 2021 Google LLC.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#      http://www.apache.org/licenses/LICENSE-2.0
+#     http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,8 +16,8 @@ import flax
 import jax
 import numpy as np
 import tensorflow as tf
-import tensorflow_probability as tfp
 import tensorflow_datasets as tfds
+import tensorflow_probability as tfp
 
 import sys
 if sys.platform != 'darwin':
@@ -28,30 +28,6 @@ if sys.platform != 'darwin':
 
 # Adjust depending on the available RAM.
 MAX_IN_MEMORY = 200_000
-
-DATASET_PRESETS = {
-    'cifar10': {
-        'train': 'train[:98%]',
-        'test': 'test',
-        'resize': 448,
-        'crop': 384,
-        'total_steps': 10_000,
-    },
-    'cifar100': {
-        'train': 'train[:98%]',
-        'test': 'test',
-        'resize': 448,
-        'crop': 384,
-        'total_steps': 10_000,
-    },
-    'imagenet2012': {
-        'train': 'train[:99%]',
-        'test': 'validation',
-        'resize': 448,
-        'crop': 384,
-        'total_steps': 20_000,
-    },
-}
 
 
 def get_dataset_info(dataset, split):
@@ -69,6 +45,7 @@ def get_data(*,
              mode,
              repeats,
              batch_size,
+             pp_config,
              mixup_alpha=0,
              shuffle_buffer=MAX_IN_MEMORY,
              tfds_data_dir=None,
@@ -85,7 +62,8 @@ def get_data(*,
       repeats specify None.
     batch_size: Global batch size. Note that the returned dataset will have
       dimensions [local_devices, batch_size / local_devices, ...].
-    mixup_alpha: Coefficient for mixup combination. See 
+    pp_config: A config with train/test split names and resize sizes.
+    mixup_alpha: Coefficient for mixup combination. See
       https://arxiv.org/abs/1710.09412
     shuffle_buffer: Number of elements to preload the shuffle buffer with.
     tfds_data_dir: Optional directory where tfds datasets are stored. If not
@@ -94,13 +72,9 @@ def get_data(*,
     inception_crop: If set to True, tf.image.sample_distorted_bounding_box()
       will be used. If set to False, tf.image.random_crop() will be used.
   """
-
-  preset = DATASET_PRESETS.get(dataset)
-  if preset is None:
-    raise KeyError(f'Please add "{dataset}" to {__name__}.DATASET_PRESETS"')
-  split = preset[mode]
-  resize_size = preset['resize']
-  crop_size = preset['crop']
+  split = pp_config[mode]
+  resize_size = pp_config['resize']
+  crop_size = pp_config['crop']
   data_builder = tfds.builder(dataset, data_dir=tfds_data_dir)
   dataset_info = get_dataset_info(dataset, split)
 
