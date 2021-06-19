@@ -19,7 +19,6 @@ Example for fine-tuning a R+Ti/16 on cifar100:
 python -m vit_jax.main --workdir=/tmp/vit \
     --config=$(pwd)/vit_jax/configs/augreg.py:R_Ti_16 \
     --config.dataset=oxford_iiit_pet \
-    --config.pp.train='train[:90%]' \
     --config.base_lr=0.01
 
 Note that by default, the best i21k pre-trained checkpoint by upstream
@@ -29,7 +28,6 @@ specifying the full name (without ".npz" extension):
 python -m vit_jax.main --workdir=/tmp/vit \
     --config=$(pwd)/vit_jax/configs/augreg.py:R_Ti_16-i21k-300ep-lr_0.001-aug_none-wd_0.03-do_0.0-sd_0.0 \
     --config.dataset=oxford_iiit_pet \
-    --config.pp.train='train[:90%]' \
     --config.base_lr=0.01
 """
 

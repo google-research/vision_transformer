@@ -1,12 +1,17 @@
-# Vision Transformer and MLP-Mixer Architectures for Vision
+# Vision Transformer and MLP-Mixer Architectures
 
 **Update (18.6.2021)**: This repository was rewritten to use Flax Linen API and
 `ml_collections.ConfigDict` for configuration.
 
+**Update (19.6.2021)**: Added the "How to train your ViT? ..." paper, and a new
+Colab to explore the >50k pre-trained and fine-tuned checkpoints mentioned in
+the paper.
+
 In this repository we release models from the papers
-[An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale](https://arxiv.org/abs/2010.11929)
-and
+[An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale](https://arxiv.org/abs/2010.11929),
 [MLP-Mixer: An all-MLP Architecture for Vision](https://arxiv.org/abs/2105.01601)
+and
+[How to train your ViT? Data, Augmentation, and Regularization in Vision Transformers](https://arxiv.org/abs/2106.TODO)
 that were pre-trained on the [ImageNet](http://www.image-net.org/) (imagenet)
 and [ImageNet-21k](http://www.image-net.org/) (imagenet21k) datasets. We
 provide the code for fine-tuning the released models in
@@ -14,7 +19,7 @@ provide the code for fine-tuning the released models in
 
 Table of contents:
 
-- [Vision Transformer and MLP-Mixer Architectures for Vision](#vision-transformer-and-mlp-mixer-architectures-for-vision)
+- [Vision Transformer and MLP-Mixer Architectures](#vision-transformer-and-mlp-mixer-architectures)
 	- [Colab](#colab)
 	- [Installation](#installation)
 	- [Fine-tuning a model](#fine-tuning-a-model)
@@ -44,6 +49,16 @@ Note that the Colab can be run as is storing all data in the ephemeral VM, or,
 alternatively you can log into your personal Google Drive to persist the code
 and data there.
 
+A second Colab allows you to explore the >50k Vision Transofrmer and hybrid
+checkpoints that were used to generate the data of the third paper "How to train
+your ViT? ..." - both code to load checkpoints in JAX (using modules from this
+repository) and PyTorch (via [`timm`] library) is provided:
+
+https://colab.research.google.com/github/google-research/vision_transformer/blob/master/vit_jax_augreg.ipynb
+
+[`timm`]: https://github.com/rwightman/pytorch-image-models
+
+
 
 ## Installation
 
@@ -58,7 +73,8 @@ Then, install python dependencies by running:
 pip install -r vit_jax/requirements.txt
 ```
 
-For more details refer to the section [Running on Google Cloud] below.
+For more details refer to the section [Running on cloud](#running-on-cloud)
+below.
 
 
 ## Fine-tuning a model
@@ -83,6 +99,15 @@ In order to fine-tune a Mixer-B/16 (pre-trained on imagenet21k) on CIFAR10:
 python -m vit_jax.main --workdir=/tmp/mixer \
     --config=$(pwd)/vit_jax/configs/mixer_base16_cifar10.py \
     --config.pretrained_dir='gs://mixer_models/imagenet21k'
+```
+
+Or to finetune a model from the "How to train your ViT? ..." repository:
+
+```bash
+python -m vit_jax.main --workdir=/tmp/vit \
+    --config=$(pwd)/vit_jax/configs/augreg.py:R_Ti_16 \
+    --config.dataset=oxford_iiit_pet \
+    --config.base_lr=0.01
 ```
 
 Currently, the code will automatically download CIFAR-10 and CIFAR-100 datasets.
@@ -132,6 +157,11 @@ to the sequence.
 We provide models pre-trained on imagenet21k for the following architectures:
 ViT-B/16, ViT-B/32, ViT-L/16 and ViT-L/32. We  provide the same models
 pre-trained on imagenet21k *and* fine-tuned on imagenet2012.
+
+**Update (19.5.2021)**: We added more than 50k ViT and hybrid models pre-trained
+on ImageNet and ImageNet-21k with various degrees of data augmentation and model
+regularization, and fine-tuned on ImageNet, Pets37, Kitti-distance, CIFAR-100,
+and Resisc45. See second [Colab](#colab) above for details.
 
 **Update (1.12.2020)**: We have added the R50+ViT-B/16 hybrid model (ViT-B/16 on
 top of a Resnet-50 backbone). When pretrained on imagenet21k, this model
@@ -269,7 +299,7 @@ gcloud compute instances create $VM_NAME \
 # Connect to VM.
 gcloud compute ssh --project $PROJECT --zone $ZONE $VM_NAME
 
-# Delete VM after use.
+# Delete VM after use (this will also remove all data stored on VM).
 gcloud compute instances delete --project $PROJECT --zone $ZONE $VM_NAME
 ```
 
@@ -285,7 +315,8 @@ python3 -m virtualenv env
 pip3 install --upgrade jax jaxlib \
     -f https://storage.googleapis.com/jax-releases/jax_releases.html
 pip install -r vit_jax/requirements.txt
-python
+# Check that JAX can connect to attached accelerators:
+python -c 'import jax; print(jax.devices())'
 ```
 
 And finally execute the command as mentioned in [How to fine-tune ViT].
@@ -294,17 +325,24 @@ And finally execute the command as mentioned in [How to fine-tune ViT].
 ## Bibtex
 
 ```
-@article{dosovitskiy2020,
+@article{dosovitskiy2020vit,
   title={An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale},
   author={Dosovitskiy, Alexey and Beyer, Lucas and Kolesnikov, Alexander and Weissenborn, Dirk and Zhai, Xiaohua and Unterthiner, Thomas and  Dehghani, Mostafa and Minderer, Matthias and Heigold, Georg and Gelly, Sylvain and Uszkoreit, Jakob and Houlsby, Neil},
   journal={ICLR},
   year={2021}
 }
 
-@article{tolstikhin2021,
+@article{tolstikhin2021mixer,
   title={MLP-Mixer: An all-MLP Architecture for Vision},
   author={Tolstikhin, Ilya and Houlsby, Neil and Kolesnikov, Alexander and Beyer, Lucas and Zhai, Xiaohua and Unterthiner, Thomas and Yung, Jessica and Steiner, Andreas and Keysers, Daniel and Uszkoreit, Jakob and Lucic, Mario and Dosovitskiy, Alexey},
   journal={arXiv preprint arXiv:2105.01601},
+  year={2021}
+}
+
+@article{steiner2021,
+  title={How to train your ViT? Data, Augmentation, and Regularization in Vision Transformers},
+  author={Steiner, Andreas and Kolesnikov, Alexander and and Zhai, Xiaohua and Wightman, Ross and Uszkoreit, Jakob and Beyer, Lucas},
+  journal={arXiv preprint arXiv:2106.TODO},
   year={2021}
 }
 ```
