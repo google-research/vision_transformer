@@ -1,20 +1,21 @@
 # Vision Transformer and MLP-Mixer Architectures
 
-**Update (18.6.2021)**: This repository was rewritten to use Flax Linen API and
-`ml_collections.ConfigDict` for configuration.
-
-**Update (19.6.2021)**: Added the "How to train your ViT? ..." paper, and a new
+**Update (20.6.2021)**: Added the "How to train your ViT? ..." paper, and a new
 Colab to explore the >50k pre-trained and fine-tuned checkpoints mentioned in
 the paper.
 
+**Update (18.6.2021)**: This repository was rewritten to use Flax Linen API and
+`ml_collections.ConfigDict` for configuration.
+
 In this repository we release models from the papers
-[An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale](https://arxiv.org/abs/2010.11929),
-[MLP-Mixer: An all-MLP Architecture for Vision](https://arxiv.org/abs/2105.01601)
-and
-[How to train your ViT? Data, Augmentation, and Regularization in Vision Transformers](https://arxiv.org/abs/2106.TODO)
-that were pre-trained on the [ImageNet](http://www.image-net.org/) (imagenet)
-and [ImageNet-21k](http://www.image-net.org/) (imagenet21k) datasets. We
-provide the code for fine-tuning the released models in
+
+- [An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale](https://arxiv.org/abs/2010.11929)
+- [MLP-Mixer: An all-MLP Architecture for Vision](https://arxiv.org/abs/2105.01601)
+- [How to train your ViT? Data, Augmentation, and Regularization in Vision Transformers](https://arxiv.org/abs/2106.TODO)
+
+The models were pre-trained on the [ImageNet](http://www.image-net.org/) and
+[ImageNet-21k](http://www.image-net.org/) datasets. We provide the code for
+fine-tuning the released models in
 [Jax](https://jax.readthedocs.io)/[Flax](http://flax.readthedocs.io).
 
 Table of contents:
@@ -30,31 +31,43 @@ Table of contents:
 		- [Available Mixer models](#available-mixer-models)
 		- [Expected Mixer results](#expected-mixer-results)
 	- [Running on cloud](#running-on-cloud)
+		- [Create a VM](#create-a-vm)
+		- [Setup VM](#setup-vm)
 	- [Bibtex](#bibtex)
 	- [Disclaimers](#disclaimers)
 
 
 ## Colab
 
-We prepared a Colab that walks you through loading data from `tfds`, evaluating
-a model, downloading pre-trained weights, fine-tuning, and inference on
-individual images.
+Below Colabs run both with GPUs, and TPUs (8 cores, data parallelism).
 
-The Colab works demonstrates the use of both Vision Transformers and MLP Mixers,
-and works with GPU and TPU (8 cores, data parallelism) runtimes:
+The first Colab demonstrates the JAX code of Vision Transformers and MLP Mixers.
+This Colab allows you to edit the files from the repository directly in the
+Colab UI and has annotated Colab cells that walk you through the code step by
+step, and lets you interact with the data.
 
 https://colab.research.google.com/github/google-research/vision_transformer/blob/master/vit_jax.ipynb
 
-Note that the Colab can be run as is storing all data in the ephemeral VM, or,
-alternatively you can log into your personal Google Drive to persist the code
-and data there.
-
-A second Colab allows you to explore the >50k Vision Transofrmer and hybrid
+The second Colab allows you to explore the >50k Vision Transformer and hybrid
 checkpoints that were used to generate the data of the third paper "How to train
-your ViT? ..." - both code to load checkpoints in JAX (using modules from this
-repository) and PyTorch (via [`timm`] library) is provided:
+your ViT? ...". The Colab includes code to explore and select checkpoints, and
+to do inference both using the JAX code from this repo, and also using the
+popular [`timm`] PyTorch library that can directly load these checkpoints as
+well.
+
+The second Colab also lets you fine-tune the checkpoints on any tfds dataset
+and your own dataset with examples in individual JPEG files (optionally directly
+reading from Google Drive).
 
 https://colab.research.google.com/github/google-research/vision_transformer/blob/master/vit_jax_augreg.ipynb
+
+**Note**: As for now (6/20/21) Google Colab only supports a single GPU (Nvidia
+Tesla T4), and TPUs (currently TPUv2-8) are attached indirectly to the Colab VM
+and communicate over slow network, which leads to pretty bad training speed. You
+would usually want to set up a dedicated machine if you have a non-trivial
+amount of data to fine-tune on. For details see the
+[Running on cloud](#running-on-cloud) section.
+
 
 [`timm`]: https://github.com/rwightman/pytorch-image-models
 
@@ -88,7 +101,7 @@ instruct the code to access the models directly from a GCS bucket instead of
 first downloading them into the local directory):
 
 ```bash
-python -m vit_jax.main --workdir=/tmp/vit \
+python -m vit_jax.main --workdir=/tmp/vit-$(date +%s) \
     --config=$(pwd)/vit_jax/configs/vit.py:b16,cifar10 \
     --config.pretrained_dir='gs://vit_models/imagenet21k'
 ```
@@ -96,7 +109,7 @@ python -m vit_jax.main --workdir=/tmp/vit \
 In order to fine-tune a Mixer-B/16 (pre-trained on imagenet21k) on CIFAR10:
 
 ```bash
-python -m vit_jax.main --workdir=/tmp/mixer \
+python -m vit_jax.main --workdir=/tmp/vit-$(date +%s) \
     --config=$(pwd)/vit_jax/configs/mixer_base16_cifar10.py \
     --config.pretrained_dir='gs://mixer_models/imagenet21k'
 ```
@@ -104,7 +117,7 @@ python -m vit_jax.main --workdir=/tmp/mixer \
 Or to finetune a model from the "How to train your ViT? ..." repository:
 
 ```bash
-python -m vit_jax.main --workdir=/tmp/vit \
+python -m vit_jax.main --workdir=/tmp/vit-$(date +%s) \
     --config=$(pwd)/vit_jax/configs/augreg.py:R_Ti_16 \
     --config.dataset=oxford_iiit_pet \
     --config.base_lr=0.01
@@ -121,19 +134,16 @@ Note that our code uses all available GPUs/TPUs for fine-tuning.
 To see a detailed list of all available flags, run `python3 -m vit_jax.train
 --help`.
 
-Notes about some flags:
+Notes on memory:
 
--   `--config.accum_steps=16` : This works well with ViT-B_16 on a machine that
-    has 8 GPUs of type V100 with 16G memory each attached. If you have fewer
-    accelerators or accelerators with less memory, you can use the same
-    configuration but increase the `--config.accum_steps`. For a small model
-    like ViT-B_32 you can even use `--config.accum_steps=1`. For a large model
-    like ViT-L_16 you need to go in the other direction (e.g.
-    `--config.accum_steps=32`). Note that the largest model ViT-H_14 also needs
-    adaptation of the batch size (`--config.accum_steps=2 --config.batch=16`
-    should work on a 8x V100). tested `)
--   `--config.batch=512` : Alternatively, you can decrease the batch size, but
-    that usually involves some tuning of the learning rate parameters.
+- Different models require different amount of memory. Available memory also
+  depends on the accelerator configuration (both type and count). If you
+  encounter an out-of-memory error you can increase the value of
+  `--config.accum_steps=8` -- alternatively, you could also decrease the
+  `--config.batch=512` (and decrease `--config.base_lr` accordingly).
+- The host keeps a shuffle buffer in memory. If you encounter a host OOM (as
+  opposed to an accelerator OOM), you can decrease the default
+  `--config.shuffle_buffer=50000`.
 
 
 ## Vision Transformer
@@ -271,6 +281,11 @@ ImageNet-21k | Mixer-L/16 | cifar10 | 98.34%   | 10.0h           | [tensorboard.
 
 ## Running on cloud
 
+While above [colabs](#colab) are pretty useful to get started, you would usually
+want to train on a larger machine with more powerful accelerators.
+
+### Create a VM
+
 You can use the following commands to setup a VM with GPUs on Google Cloud:
 
 ```bash
@@ -279,11 +294,11 @@ You can use the following commands to setup a VM with GPUs on Google Cloud:
 # For a list of zones with GPUs refer to
 # https://cloud.google.com/compute/docs/gpus/gpu-regions-zones
 PROJECT=my-awesome-gcp-project
-VM_NAME=vit-jax-vm
+VM_NAME=vit-jax-vm-gpu
 ZONE=europe-west4-b
 
 # Below settings have been tested with this repository. You can choose other
-# combinations of images & machines, refer to the corresponding gcloud commands:
+# combinations of images & machines (e.g.), refer to the corresponding gcloud commands:
 # gcloud compute images list --project ml-images
 # gcloud compute machine-types list
 # etc.
@@ -296,30 +311,83 @@ gcloud compute instances create $VM_NAME \
     --maintenance-policy=TERMINATE \
     --accelerator=type=nvidia-tesla-v100,count=8
 
-# Connect to VM.
+# Connect to VM (after some minutes needed to setup & start the machine).
 gcloud compute ssh --project $PROJECT --zone $ZONE $VM_NAME
+
+# Stop the VM after use (only storage is billed for a stopped VM).
+gcloud compute instances stop --project $PROJECT --zone $ZONE $VM_NAME
 
 # Delete VM after use (this will also remove all data stored on VM).
 gcloud compute instances delete --project $PROJECT --zone $ZONE $VM_NAME
 ```
 
+Alternatively, you can use the following similar commands to set up a Cloud VM
+with TPUs attached to them (below commands copied from the [TPU tutorial]):
+
+[TPU tutorial]: https://cloud.google.com/tpu/docs/jax-quickstart-tpu-vm
+
+```bash
+PROJECT=my-awesome-gcp-project
+VM_NAME=vit-jax-vm-tpu
+ZONE=europe-west4-a
+
+# Required to set up service identity initially.
+gcloud beta services identity create --service tpu.googleapis.com
+
+# Create a VM with TPUs directly attached to it.
+gcloud alpha compute tpus tpu-vm create $VM_NAME \
+    --project=$PROJECT --zone=$ZONE \
+    --accelerator-type v3-8 \
+    --version v2-alpha
+
+# Connect to VM (after some minutes needed to setup & start the machine).
+gcloud alpha compute tpus tpu-vm ssh --project $PROJECT --zone $ZONE $VM_NAME
+
+# Stop the VM after use (only storage is billed for a stopped VM).
+gcloud alpha compute tpus tpu-vm stop --project $PROJECT --zone $ZONE $VM_NAME
+
+# Delete VM after use (this will also remove all data stored on VM).
+gcloud alpha compute tpus tpu-vm delete --project $PROJECT --zone $ZONE $VM_NAME
+```
+
+### Setup VM
+
 And then fetch the repository and the install dependencies (including `jaxlib`
 with TPU support) as usual:
 
 ```bash
-git clone https://github.com/google-research/vision_transformer
+git clone --depth=1 --branch=master https://github.com/google-research/vision_transformer
 cd vision_transformer
 pip3 install virtualenv
 python3 -m virtualenv env
 . env/bin/activate
+```
+
+If you're connected to a VM with GPUs attached, install JAX with the following
+command:
+
+```bash
 pip3 install --upgrade jax jaxlib \
     -f https://storage.googleapis.com/jax-releases/jax_releases.html
+```
+
+If you're connected to a VM with TPUs attached, install JAX with the following
+command:
+
+```bash
+pip3 install --upgrade jax jaxlib
+```
+
+For both GPUs and TPUs, then proceed to install the remaining dependencies and
+check that accelerators can indeed show up in JAX:
+
+```bash
 pip install -r vit_jax/requirements.txt
 # Check that JAX can connect to attached accelerators:
 python -c 'import jax; print(jax.devices())'
 ```
 
-And finally execute the command as mentioned in [How to fine-tune ViT].
+And finally execute one of the commands mentioned under [How to fine-tune ViT].
 
 
 ## Bibtex
