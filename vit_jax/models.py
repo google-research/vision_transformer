@@ -237,19 +237,20 @@ class VisionTransformer(nn.Module):
       x = nn.max_pool(x, window_shape=(3, 3), strides=(2, 2), padding='SAME')
 
       # ResNet stages.
-      x = models_resnet.ResNetStage(
-          block_size=self.resnet.num_layers[0],
-          nout=width,
-          first_stride=(1, 1),
-          name='block1')(
-              x)
-      for i, block_size in enumerate(self.resnet.num_layers[1:], 1):
+      if self.resnet.num_layers:
         x = models_resnet.ResNetStage(
-            block_size=block_size,
-            nout=width * 2**i,
-            first_stride=(2, 2),
-            name=f'block{i + 1}')(
+            block_size=self.resnet.num_layers[0],
+            nout=width,
+            first_stride=(1, 1),
+            name='block1')(
                 x)
+        for i, block_size in enumerate(self.resnet.num_layers[1:], 1):
+          x = models_resnet.ResNetStage(
+              block_size=block_size,
+              nout=width * 2**i,
+              first_stride=(2, 2),
+              name=f'block{i + 1}')(
+                  x)
 
     n, h, w, c = x.shape
 

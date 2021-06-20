@@ -19,6 +19,7 @@ import flax
 from  flax.training import checkpoints
 import jax.numpy as jnp
 import numpy as np
+import pandas as pd
 import scipy
 from tensorflow.io import gfile  # pylint: disable=import-error
 
@@ -175,3 +176,53 @@ def load_pretrained(*, pretrained_path, init_params, model_config):
       restored_params['Transformer']['posembed_input']['pos_embedding'] = posemb
 
   return flax.core.freeze(restored_params)
+
+
+def get_augreg_df(directory='gs://vit_models/augreg'):
+  """Reads DataFrame describing AugReg models from GCS bucket.
+
+  This function returns a dataframe that describes the models that were
+  published as part of the paper "How to train your ViT? Data, Augmentation, and
+  Regularization in Vision Transformers" (https://arxiv.org/abs/TODO).
+
+  Note that every row in the dataset corresponds to a pre-training checkpoint
+  (column "filename"), and a fine-tuning checkpoint (column "adapt_filename").
+  Every pre-trained checkpoint is fine-tuned many times.
+
+  Args:
+    directory: Pathname of directory containing "index.csv"
+
+  Returns:
+    Dataframe with the following columns:
+      - name: Name of the model, as used in descriptions in paper (e.g. "B/16",
+        or "R26+S/32").
+      - ds: Dataset used for pre-training: "i1k" (300 epochs), "i21k" (300
+        epochs), and "i21k_30" (30 epochs).
+      - lr: Learning rate used for pre-training.
+      - aug: Data augmentation used for pre-training. Refer to paper for
+        details.
+      - wd: Weight decay used for pre-training.
+      - do: Dropout used for pre-training.
+      - sd: Stochastic depth used for pre-training.
+      - best_val: Best accuracy on validation set that was reached during the
+        pre-training. Note that "validation set" can refer to minival (meaning
+        split from training set, as for example for "imagenet2012" dataset).
+      - final_val: Final validation set accuracy.
+      - final_test: Final testset accuracy (in cases where there is no official
+        testset, like for "imagenet2012", this refers to the validation set).
+      - adapt_ds: What dataset was used for fine-tuning.
+      - adapt_lr: Learning rate used for fine-tuning.
+      - adapt_steps: Number of steps used for fine-tuning (with a fixed batch
+        size of 512).
+      - adapt_resolution: Resolution that was used for fine-tuning.
+      - adapt_final_val: Final validation accuracy after fine-tuning.
+      - adapt_final_test: Final test accuracy after fine-tuning.
+      - params: Number of parameters.
+      - infer_samples_per_sec: Numbers of sample per seconds during inference on
+        a V100 GPU (measured with `timm` implementation).
+      - filename: Name of the pre-training checkpoint. Can be found at
+        "gs://vit_models/augreg/{filename}.npz".
+      - adapt_filename: Name of the fine-tuning checkpoint.
+  """
+  with gfile.GFile(f'{directory}/index.csv') as f:
+    return pd.read_csv(f)
