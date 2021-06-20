@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import ml_collections
+
 from vit_jax.configs import common
 from vit_jax.configs import models
 
@@ -25,5 +26,5 @@ def get_config():
   config.dataset = 'cifar10'
   config.total_steps = 10_000
   config.pp = ml_collections.ConfigDict(
-      {'train': 'train[:98%]', 'test': 'test', 'resize': 256, 'crop': 224})
+      {'train': 'train[:98%]', 'test': 'test', 'crop': 224})
   return config

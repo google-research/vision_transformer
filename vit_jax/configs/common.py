@@ -25,7 +25,10 @@ def get_config():
   # Where to search for pretrained ViT models.
   # Can be downloaded from gs://vit_models/imagenet21k
   config.pretrained_dir = '.'
-  # Which dataset to finetune on.
+  # Which dataset to finetune on. This can be the name of a tfds dataset
+  # (see https://www.tensorflow.org/datasets/catalog/overview), or the path to
+  # a directory with the following structure ($filename can be arbitrary):
+  # "{train,test}/$class_name/$filename.jpg"
   config.dataset = ''
   # Path to manually downloaded dataset
   config.tfds_manual_dir = None
@@ -34,8 +37,6 @@ def get_config():
   # Number of steps; determined by hyper module if not specified.
   config.total_steps = None
 
-  # Coefficient for mixup combination. See https://arxiv.org/abs/1710.09412
-  config.mixup_alpha = 0.0
   # Resizes global gradients.
   config.grad_norm_clip = 1.0
   # Datatype to use for momentum state ("bfloat16" or "float32").
@@ -87,7 +88,6 @@ DATASET_PRESETS = {
          'pp': ml_collections.ConfigDict(
              {'train': 'train[:98%]',
               'test': 'test',
-              'resize': 448,
               'crop': 384})
          }),
     'cifar100': ml_collections.ConfigDict(
@@ -95,7 +95,6 @@ DATASET_PRESETS = {
          'pp': ml_collections.ConfigDict(
              {'train': 'train[:98%]',
               'test': 'test',
-              'resize': 448,
               'crop': 384})
          }),
     'imagenet2012': ml_collections.ConfigDict(
@@ -103,7 +102,6 @@ DATASET_PRESETS = {
          'pp': ml_collections.ConfigDict(
              {'train': 'train[:99%]',
               'test': 'validation',
-              'resize': 448,
               'crop': 384})
          }),
 }

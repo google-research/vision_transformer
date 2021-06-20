@@ -75,26 +75,9 @@ def train_and_evaluate(config: ml_collections.ConfigDict, workdir: str):
   # Setup input pipeline
   dataset_info = input_pipeline.get_dataset_info(config.dataset, 'train')
 
-  ds_train = input_pipeline.get_data(
-      dataset=config.dataset,
-      mode='train',
-      repeats=None,
-      mixup_alpha=config.mixup_alpha,
-      batch_size=config.batch,
-      pp_config=config.pp,
-      shuffle_buffer=config.shuffle_buffer,
-      tfds_data_dir=config.tfds_data_dir,
-      tfds_manual_dir=config.tfds_manual_dir)
+  ds_train, ds_test = input_pipeline.get_datasets(config)
   batch = next(iter(ds_train))
   logging.info(ds_train)
-  ds_test = input_pipeline.get_data(
-      dataset=config.dataset,
-      mode='test',
-      repeats=1,
-      batch_size=config.batch_eval,
-      pp_config=config.pp,
-      tfds_data_dir=config.tfds_data_dir,
-      tfds_manual_dir=config.tfds_manual_dir)
   logging.info(ds_test)
 
   # Build VisionTransformer architecture
@@ -173,18 +156,19 @@ def train_and_evaluate(config: ml_collections.ConfigDict, workdir: str):
   # Prepare the learning-rate and pre-fetch it to device to avoid delays.
   update_rng_repl = flax.jax_utils.replicate(jax.random.PRNGKey(0))
 
-  # Run training loop
+  # Setup metric writer & hooks.
   writer = metric_writers.create_default_writer(workdir, asynchronous=False)
   writer.write_hparams(config.to_dict())
-  logging.info('Starting training loop; initial compile can take a while...')
-  t0 = lt0 = time.time()
-
-  step = lstep = initial_step
   hooks = [
       periodic_actions.Profile(logdir=workdir),
       periodic_actions.ReportProgress(
           num_train_steps=total_steps, writer=writer),
   ]
+
+  # Run training loop
+  logging.info('Starting training loop; initial compile can take a while...')
+  t0 = lt0 = time.time()
+  lstep = initial_step
   for step, batch in zip(
       range(initial_step, total_steps + 1),
       input_pipeline.prefetch(ds_train, config.prefetch)):
@@ -192,6 +176,7 @@ def train_and_evaluate(config: ml_collections.ConfigDict, workdir: str):
     with jax.profiler.StepTraceContext('train', step_num=step):
       opt_repl, loss_repl, update_rng_repl = update_fn_repl(
           opt_repl, flax.jax_utils.replicate(step), batch, update_rng_repl)
+
     for hook in hooks:
       hook(step)
 
