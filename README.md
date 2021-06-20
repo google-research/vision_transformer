@@ -16,7 +16,7 @@ In this repository we release models from the papers
 The models were pre-trained on the [ImageNet](http://www.image-net.org/) and
 [ImageNet-21k](http://www.image-net.org/) datasets. We provide the code for
 fine-tuning the released models in
-[Jax](https://jax.readthedocs.io)/[Flax](http://flax.readthedocs.io).
+[JAX](https://jax.readthedocs.io)/[Flax](http://flax.readthedocs.io).
 
 Table of contents:
 
@@ -77,7 +77,7 @@ amount of data to fine-tune on. For details see the
 
 Make sure you have `Python>=3.6` installed on your machine.
 
-For installing [Jax](https://github.com/google/jax), follow the instructions
+For installing [JAX](https://github.com/google/jax), follow the instructions
 provided in the corresponding repository linked here. Note that installation
 instructions for GPU differs slightly from the instructions for CPU.
 
@@ -293,7 +293,7 @@ You can use the following commands to setup a VM with GPUs on Google Cloud:
 # Note that project must have accounting set up.
 # For a list of zones with GPUs refer to
 # https://cloud.google.com/compute/docs/gpus/gpu-regions-zones
-PROJECT=my-awesome-gcp-project
+PROJECT=my-awesome-gcp-project  # Project must have billing enabled.
 VM_NAME=vit-jax-vm-gpu
 ZONE=europe-west4-b
 
@@ -327,7 +327,7 @@ with TPUs attached to them (below commands copied from the [TPU tutorial]):
 [TPU tutorial]: https://cloud.google.com/tpu/docs/jax-quickstart-tpu-vm
 
 ```bash
-PROJECT=my-awesome-gcp-project
+PROJECT=my-awesome-gcp-project  # Project must have billing enabled.
 VM_NAME=vit-jax-vm-tpu
 ZONE=europe-west4-a
 
@@ -387,7 +387,8 @@ pip install -r vit_jax/requirements.txt
 python -c 'import jax; print(jax.devices())'
 ```
 
-And finally execute one of the commands mentioned under [How to fine-tune ViT].
+And finally execute one of the commands mentioned in the section
+[fine-tuning a model](#fine-tuning-a-model).
 
 
 ## Bibtex
@@ -407,7 +408,7 @@ And finally execute one of the commands mentioned under [How to fine-tune ViT].
   year={2021}
 }
 
-@article{steiner2021,
+@article{steiner2021augreg,
   title={How to train your ViT? Data, Augmentation, and Regularization in Vision Transformers},
   author={Steiner, Andreas and Kolesnikov, Alexander and and Zhai, Xiaohua and Wightman, Ross and Uszkoreit, Jakob and Beyer, Lucas},
   journal={arXiv preprint arXiv:2106.TODO},
