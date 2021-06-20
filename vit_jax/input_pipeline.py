@@ -129,7 +129,7 @@ def get_data_from_directory(*, config, directory, mode):
       num_classes=dataset_info['num_classes'],
       image_decoder=image_decoder,
       repeats=None if mode == 'train' else 1,
-      batch_size=config.batch,
+      batch_size=config.batch_eval if mode == 'test' else config.batch,
       image_size=config.pp['crop'],
       shuffle_buffer=min(dataset_info['num_examples'], config.shuffle_buffer),
       preprocess=_pp)
@@ -157,7 +157,7 @@ def get_data_from_tfds(*, config, mode):
       num_classes=dataset_info['num_classes'],
       image_decoder=image_decoder,
       repeats=None if mode == 'train' else 1,
-      batch_size=config.batch,
+      batch_size=config.batch_eval if mode == 'test' else config.batch,
       image_size=config.pp['crop'],
       shuffle_buffer=min(dataset_info['num_examples'], config.shuffle_buffer))
 
