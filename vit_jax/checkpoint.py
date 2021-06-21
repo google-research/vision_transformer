@@ -13,21 +13,14 @@
 # limitations under the License.
 
 import collections
-import io
-import os
-import re
 
 from absl import logging
-import dataclasses
 import flax
-import flax.training.checkpoints
-import jax
+from  flax.training import checkpoints
 import jax.numpy as jnp
 import numpy as np
 import scipy
 from tensorflow.io import gfile  # pylint: disable=import-error
-
-_MODULE_NUM_RE = re.compile(r'(.*)_\d+$')
 
 
 def _flatten_dict(d, parent_key='', sep='/'):
@@ -45,54 +38,6 @@ def _flatten_dict(d, parent_key='', sep='/'):
     items.append((parent_key, {}))
 
   return dict(items)
-
-
-def convert_pre_linen_pytree(params):
-  """Converts a pre-Linen parameter pytree.
-
-  In pre-Linen API submodules were numbered incrementially, independent of the
-  submodule class. With Linen this behavior has changed to keep separate
-  submodule counts per module class.
-
-  Consider the following module:
-
-    class Model(nn.Module):
-      @nn.compact
-      def __call__(self, x):
-        x = nn.Conv(1, 1)(x)
-        x = nn.Dense(1)(x)
-        return x
-
-  In pre-Linen the resulting params would have had the structure:
-    {'Conv_0': { ... }, 'Dense_1': { ... } }
-
-  With Linen the resulting params would instead have had the structure:
-    {'Conv_0': { ... }, 'Dense_0': { ... } }
-
-  Args:
-    params: Parameter pytree in pre-Linen format. If the pytree is already in
-      Linen format, then the returned pytree has an identical structure.
-
-  Returns:
-    Parameter pytree with Linen submodule naming.
-  """
-  if isinstance(params, flax.core.FrozenDict):
-    params = flax.core.unfreeze(params)
-  if not isinstance(params, dict):
-    return params
-  params_renamed = {}
-  counts = {}
-  names = flax.training.checkpoints.natural_sort(params.keys())
-  for name in names:
-    value = params[name]
-    match = _MODULE_NUM_RE.match(name)
-    if match:
-      module = match.group(1)
-      num = counts.get(module, 0)
-      name = f'{module}_{num}'
-      counts[module] = num + 1
-    params_renamed[name] = convert_pre_linen_pytree(value)
-  return params_renamed
 
 
 def inspect_params(*,
@@ -159,79 +104,15 @@ def recover_tree(keys, values):
   return tree
 
 
-def _traverse_with_names(tree):
-  """Traverses nested dicts/dataclasses and emits (leaf_name, leaf_val)."""
-  if dataclasses.is_dataclass(tree):
-    tree = flax.serialization.to_state_dict(tree)
-  if isinstance(tree, dict) or isinstance(tree, flax.core.FrozenDict):
-    keys = sorted(tree.keys())
-    for key in keys:
-      for path, v in _traverse_with_names(tree[key]):
-        yield (key + '/' + path).rstrip('/'), v
-  else:
-    yield '', tree
-
-
-def tree_flatten_with_names(tree):
-  """Populates tree_flatten with leaf names.
-
-  This function populates output of tree_flatten with leaf names, using a
-  custom traversal that produces names is provided. The custom traversal does
-  NOT have to traverse tree in the same order as jax, as we take care of
-  automatically aligning jax' and custom traversals.
-
-  Args:
-    tree: python tree.
-
-  Returns:
-    A list of values with names: [(name, value), ...]
-  """
-  vals, tree_def = jax.tree_flatten(tree)
-
-  # "Fake" token tree that is use to track jax internal tree traversal and
-  # adjust our custom tree traversal to be compatible with it.
-  tokens = range(len(vals))
-  token_tree = tree_def.unflatten(tokens)
-  val_names, perm = zip(*_traverse_with_names(token_tree))
-  inv_perm = np.argsort(perm)
-
-  # Custom traversal should visit the same number of leaves.
-  assert len(val_names) == len(vals)
-
-  return [(val_names[i], v) for i, v in zip(inv_perm, vals)], tree_def
-
-
-def save(data, path):
-  """Util for checkpointing: saves jax pytree objects to the disk.
-
-  These checkpoints can later be recovered with `load()`.
-
-  Args:
-    data: arbitrary jax pytree to be saved.
-    path: a path to save the data.
-  """
-  names_and_vals, _ = tree_flatten_with_names(data)
-  io_buffer = io.BytesIO()
-
-  # savez uses `seek()` API call, which is not supported by cns. Thus, we first
-  # write the checkpoint to the temp buffer and then write it to the disk.
-  np.savez(io_buffer, **{k: v for k, v in names_and_vals})
-
-  # In order to be robust to interruptions we first save checkpoint to the
-  # temporal file and then move to actual path name.
-  path_tmp = path + '-TEMPORARY'
-  gfile.makedirs(os.path.dirname(path))
-  with gfile.GFile(path_tmp, 'wb') as f:
-    f.write(io_buffer.getvalue())
-  gfile.rename(path_tmp, path, overwrite=True)
-
-
 def load(path):
   """Loads params from a checkpoint previously stored with `save()`."""
   with gfile.GFile(path, 'rb') as f:
     ckpt_dict = np.load(f, allow_pickle=False)
     keys, values = zip(*list(ckpt_dict.items()))
-  return convert_pre_linen_pytree(recover_tree(keys, values))
+  params = checkpoints.convert_pre_linen(recover_tree(keys, values))
+  if isinstance(params, flax.core.FrozenDict):
+    params = params.unfreeze()
+  return params
 
 
 def load_pretrained(*, pretrained_path, init_params, model_config):

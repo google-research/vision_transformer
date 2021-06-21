@@ -41,40 +41,6 @@ class CheckpointTest(absltest.TestCase):
         init_params=variables['params'],
         model_config=model_config)
 
-  def test_convert_pre_linen_pytree(self):
-    params = checkpoint.convert_pre_linen_pytree({
-        'mod_0': {
-            'submod1_0': {},
-            'submod2_1': {},
-            'submod1_2': {},
-        },
-        'mod2_2': {
-            'mod2_2_0': {}
-        },
-        'mod2_11': {
-            'mod2_11_0': {}
-        },
-        'mod2_1': {
-            'mod2_1_0': {}
-        },
-    })
-    self.assertDictEqual(params, {
-        'mod_0': {
-            'submod1_0': {},
-            'submod1_1': {},
-            'submod2_0': {},
-        },
-        'mod2_0': {
-            'mod2_1_0': {}
-        },
-        'mod2_1': {
-            'mod2_2_0': {}
-        },
-        'mod2_2': {
-            'mod2_11_0': {}
-        },
-    })
-
 
 if __name__ == '__main__':
   absltest.main()

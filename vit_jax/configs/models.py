@@ -58,7 +58,7 @@ def get_b16_config():
   config.transformer.num_heads = 12
   config.transformer.num_layers = 12
   config.transformer.attention_dropout_rate = 0.0
-  config.transformer.dropout_rate = 0.1
+  config.transformer.dropout_rate = 0.0
   config.classifier = 'token'
   config.representation_size = None
   return config
@@ -68,6 +68,7 @@ def get_b16_config():
 def get_r50_b16_config():
   """Returns the Resnet50 + ViT-B/16 configuration."""
   config = get_b16_config()
+  config.transformer.dropout_rate = 0.1
   # Name refers to basename in the directory of pretrained models:
   # https://console.cloud.google.com/storage/vit_models/
   config.name = 'R50+ViT-B_16'
@@ -130,6 +131,7 @@ def get_l16_config():
 def get_l32_config():
   """Returns the ViT-L/32 configuration."""
   config = get_l16_config()
+  config.transformer.dropout_rate = 0.0
   # Name refers to basename in the directory of pretrained models:
   # https://console.cloud.google.com/storage/vit_models/
   config.name = 'ViT-L_32'

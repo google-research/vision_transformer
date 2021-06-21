@@ -19,6 +19,7 @@ import time
 from absl import logging
 from clu import metric_writers
 import flax
+from flax.training import checkpoints as flax_checkpoints
 import jax
 import jax.numpy as jnp
 import ml_collections
@@ -67,150 +68,159 @@ def make_update_fn(*, apply_fn, accum_steps, lr_fn):
 
 
 def train_and_evaluate(config: ml_collections.ConfigDict, workdir: str):
-    """Runs training interleaved with evaluation."""
+  """Runs training interleaved with evaluation."""
 
-    # Setup input pipeline
-    dataset_info = input_pipeline.get_dataset_info(config.dataset, 'train')
+  # Setup input pipeline
+  dataset_info = input_pipeline.get_dataset_info(config.dataset, 'train')
 
-    ds_train = input_pipeline.get_data(
-        dataset=config.dataset,
-        mode='train',
-        repeats=None,
-        mixup_alpha=config.mixup_alpha,
-        batch_size=config.batch,
-        pp_config=config.pp,
-        shuffle_buffer=config.shuffle_buffer,
-        tfds_data_dir=config.tfds_data_dir,
-        tfds_manual_dir=config.tfds_manual_dir)
-    batch = next(iter(ds_train))
-    logging.info(ds_train)
-    ds_test = input_pipeline.get_data(
-        dataset=config.dataset,
-        mode='test',
-        repeats=1,
-        batch_size=config.batch_eval,
-        pp_config=config.pp,
-        tfds_data_dir=config.tfds_data_dir,
-        tfds_manual_dir=config.tfds_manual_dir)
-    logging.info(ds_test)
+  ds_train = input_pipeline.get_data(
+      dataset=config.dataset,
+      mode='train',
+      repeats=None,
+      mixup_alpha=config.mixup_alpha,
+      batch_size=config.batch,
+      pp_config=config.pp,
+      shuffle_buffer=config.shuffle_buffer,
+      tfds_data_dir=config.tfds_data_dir,
+      tfds_manual_dir=config.tfds_manual_dir)
+  batch = next(iter(ds_train))
+  logging.info(ds_train)
+  ds_test = input_pipeline.get_data(
+      dataset=config.dataset,
+      mode='test',
+      repeats=1,
+      batch_size=config.batch_eval,
+      pp_config=config.pp,
+      tfds_data_dir=config.tfds_data_dir,
+      tfds_manual_dir=config.tfds_manual_dir)
+  logging.info(ds_test)
 
-    # Build VisionTransformer architecture
-    model_cls = {'ViT': models.VisionTransformer,
-                 'Mixer': models.MlpMixer}[config.get('model_type', 'ViT')]
-    model = model_cls(num_classes=dataset_info['num_classes'], **config.model)
+  # Build VisionTransformer architecture
+  model_cls = {'ViT': models.VisionTransformer,
+               'Mixer': models.MlpMixer}[config.get('model_type', 'ViT')]
+  model = model_cls(num_classes=dataset_info['num_classes'], **config.model)
 
-    def init_model():
-        return model.init(
-            jax.random.PRNGKey(0),
-            # Discard the "num_local_devices" dimension for initialization.
-            jnp.ones(batch['image'].shape[1:], batch['image'].dtype.name),
-            train=False)
+  def init_model():
+    return model.init(
+        jax.random.PRNGKey(0),
+        # Discard the "num_local_devices" dimension for initialization.
+        jnp.ones(batch['image'].shape[1:], batch['image'].dtype.name),
+        train=False)
 
-    # Use JIT to make sure params reside in CPU memory.
-    variables = jax.jit(init_model, backend='cpu')()
+  # Use JIT to make sure params reside in CPU memory.
+  variables = jax.jit(init_model, backend='cpu')()
 
-    # pretrained_path = os.path.join(config.pretrained_dir,
-    #                               f'{config.model.name}.npz')
-    # if not tf.io.gfile.exists(pretrained_path):
-    #  raise ValueError(
-    #      f'Could not find "{pretrained_path}" - you can download models from '
-    #      '"gs://vit_models/imagenet21k" or directly set '
-    #      '--config.pretrained_dir="gs://vit_models/imagenet21k".')
-    # params = checkpoint.load_pretrained(
-    #    pretrained_path=pretrained_path,
-    #    init_params=variables['params'],
-    #    model_config=config.model)
-    params = variables['params']
-    total_steps = config.total_steps
-    lr_fn = utils.create_learning_rate_schedule(total_steps, config.base_lr,
-                                                config.decay_type,
-                                                config.warmup_steps)
+  pretrained_path = os.path.join(config.pretrained_dir,
+                                 f'{config.model.name}.npz')
+  if not tf.io.gfile.exists(pretrained_path):
+    raise ValueError(
+        f'Could not find "{pretrained_path}" - you can download models from '
+        '"gs://vit_models/imagenet21k" or directly set '
+        '--config.pretrained_dir="gs://vit_models/imagenet21k".')
+  params = checkpoint.load_pretrained(
+      pretrained_path=pretrained_path,
+      init_params=variables['params'],
+      model_config=config.model)
 
-    update_fn_repl = make_update_fn(
-        apply_fn=model.apply, accum_steps=config.accum_steps, lr_fn=lr_fn)
-    infer_fn_repl = jax.pmap(functools.partial(model.apply, train=False))
+  total_steps = config.total_steps
+  lr_fn = utils.create_learning_rate_schedule(total_steps, config.base_lr,
+                                              config.decay_type,
+                                              config.warmup_steps)
 
-    # Create optimizer and replicate it over all TPUs/GPUs
-    opt = momentum_clip.Optimizer(
-        dtype=config.optim_dtype,
-        grad_norm_clip=config.grad_norm_clip).create(params)
-    opt_repl = flax.jax_utils.replicate(opt)
+  update_fn_repl = make_update_fn(
+      apply_fn=model.apply, accum_steps=config.accum_steps, lr_fn=lr_fn)
+  infer_fn_repl = jax.pmap(functools.partial(model.apply, train=False))
 
-    # Delete references to the objects that are not needed anymore
-    del opt
-    del params
+  # Create optimizer and replicate it over all TPUs/GPUs
+  opt = momentum_clip.Optimizer(
+      dtype=config.optim_dtype,
+      grad_norm_clip=config.grad_norm_clip).create(params)
 
-    # Prepare the learning-rate and pre-fetch it to device to avoid delays.
-    update_rng_repl = flax.jax_utils.replicate(jax.random.PRNGKey(0))
+  initial_step = 1
+  opt, initial_step = flax_checkpoints.restore_checkpoint(
+      workdir, (opt, initial_step))
+  logging.info('Will start/continue training at initial_step=%d', initial_step)
 
-    # Run training loop
-    writer = metric_writers.create_default_writer(workdir, asynchronous=False)
-    writer.write_hparams(config.to_dict())
-    logging.info('Starting training loop; initial compile can take a while...')
-    t0 = lt0 = time.time()
+  opt_repl = flax.jax_utils.replicate(opt)
 
-    for step, batch in zip(
-            range(1, total_steps + 1),
-            input_pipeline.prefetch(ds_train, config.prefetch)):
+  # Delete references to the objects that are not needed anymore
+  del opt
+  del params
 
-        opt_repl, loss_repl, update_rng_repl = update_fn_repl(
-            opt_repl, flax.jax_utils.replicate(step), batch, update_rng_repl)
+  # Prepare the learning-rate and pre-fetch it to device to avoid delays.
+  update_rng_repl = flax.jax_utils.replicate(jax.random.PRNGKey(0))
 
-        if step == 1:
-            logging.info('First step took %.1f seconds.', time.time() - t0)
-            t0 = time.time()
-            lt0, lstep = time.time(), step
+  # Run training loop
+  writer = metric_writers.create_default_writer(workdir, asynchronous=False)
+  writer.write_hparams(config.to_dict())
+  logging.info('Starting training loop; initial compile can take a while...')
+  t0 = lt0 = time.time()
 
-        # Report training metrics
-        if config.progress_every and step % config.progress_every == 0:
-            img_sec_core_train = (config.batch * (step - lstep) /
-                                  (time.time() - lt0)) / jax.device_count()
-            lt0, lstep = time.time(), step
-            writer.write_scalars(
-                step,
-                dict(
-                    train_loss=float(flax.jax_utils.unreplicate(loss_repl)),
-                    img_sec_core_train=img_sec_core_train))
-            done = step / total_steps
-            logging.info(
-                f'Step: {step}/{total_steps} {100 * done:.1f}%, '  # pylint: disable=logging-format-interpolation
-                f'img/sec/core: {img_sec_core_train:.1f}, '
-                f'ETA: {(time.time() - t0) / done * (1 - done) / 3600:.2f}h')
+  step = lstep = initial_step
+  for step, batch in zip(
+      range(initial_step, total_steps + 1),
+      input_pipeline.prefetch(ds_train, config.prefetch)):
 
-        # Run evaluation
-        if ((config.eval_every and step % config.eval_every == 0) or
-                (step == total_steps)):
+    opt_repl, loss_repl, update_rng_repl = update_fn_repl(
+        opt_repl, flax.jax_utils.replicate(step), batch, update_rng_repl)
 
-            accuracies = []
-            lt0 = time.time()
-            for test_batch in input_pipeline.prefetch(ds_test, config.prefetch):
-                logits = infer_fn_repl(
-                    dict(params=opt_repl.target), test_batch['image'])
-                accuracies.append(
-                    (np.argmax(logits,
-                               axis=-1) == np.argmax(test_batch['label'],
-                                                     axis=-1)).mean())
-            accuracy_test = np.mean(accuracies)
-            img_sec_core_test = (
-                    config.batch_eval * ds_test.cardinality().numpy() /
-                    (time.time() - lt0) / jax.device_count())
-            lt0 = time.time()
+    if step == initial_step:
+      logging.info('First step took %.1f seconds.', time.time() - t0)
+      t0 = time.time()
+      lt0, lstep = time.time(), step
 
-            lr = float(lr_fn(step))
-            logging.info(f'Step: {step} '  # pylint: disable=logging-format-interpolation
-                         f'Learning rate: {lr:.7f}, '
-                         f'Test accuracy: {accuracy_test:0.5f}, '
-                         f'img/sec/core: {img_sec_core_test:.1f}')
-            writer.write_scalars(
-                step,
-                dict(
-                    accuracy_test=accuracy_test,
-                    lr=lr,
-                    img_sec_core_test=img_sec_core_test))
+    # Report training metrics
+    if config.progress_every and step % config.progress_every == 0:
+      img_sec_core_train = (config.batch * (step - lstep) /
+                            (time.time() - lt0)) / jax.device_count()
+      lt0, lstep = time.time(), step
+      writer.write_scalars(
+          step,
+          dict(
+              train_loss=float(flax.jax_utils.unreplicate(loss_repl)),
+              img_sec_core_train=img_sec_core_train))
+      done = step / total_steps
+      logging.info(f'Step: {step}/{total_steps} {100*done:.1f}%, '  # pylint: disable=logging-format-interpolation
+                   f'img/sec/core: {img_sec_core_train:.1f}, '
+                   f'ETA: {(time.time()-t0)/done*(1-done)/3600:.2f}h')
 
-    opt = flax.jax_utils.unreplicate(opt_repl)
-    del opt_repl
-    checkpoint.save(opt.target, f'{workdir}/model.npz')
-    logging.info('Stored fine tuned checkpoint to %s', workdir)
+    # Run evaluation
+    if ((config.eval_every and step % config.eval_every == 0) or
+        (step == total_steps)):
 
-    return opt
+      accuracies = []
+      lt0 = time.time()
+      for test_batch in input_pipeline.prefetch(ds_test, config.prefetch):
+        logits = infer_fn_repl(
+            dict(params=opt_repl.target), test_batch['image'])
+        accuracies.append(
+            (np.argmax(logits,
+                       axis=-1) == np.argmax(test_batch['label'],
+                                             axis=-1)).mean())
+      accuracy_test = np.mean(accuracies)
+      img_sec_core_test = (
+          config.batch_eval * ds_test.cardinality().numpy() /
+          (time.time() - lt0) / jax.device_count())
+      lt0 = time.time()
+
+      lr = float(lr_fn(step))
+      logging.info(f'Step: {step} '  # pylint: disable=logging-format-interpolation
+                   f'Learning rate: {lr:.7f}, '
+                   f'Test accuracy: {accuracy_test:0.5f}, '
+                   f'img/sec/core: {img_sec_core_test:.1f}')
+      writer.write_scalars(
+          step,
+          dict(
+              accuracy_test=accuracy_test,
+              lr=lr,
+              img_sec_core_test=img_sec_core_test))
+
+    # Store checkpoint.
+    if ((config.checkpoint_every and step % config.eval_every == 0) or
+        step == total_steps):
+      checkpoint_path = flax_checkpoints.save_checkpoint(
+          workdir, (flax.jax_utils.unreplicate(opt_repl), step), step)
+      logging.info('Stored checkpoint at step %d to "%s"', step,
+                   checkpoint_path)
+
+  return flax.jax_utils.unreplicate(opt_repl)
