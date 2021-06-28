@@ -99,6 +99,7 @@ def train_and_evaluate(config: ml_collections.ConfigDict, workdir: str):
   if model_or_filename:
     # Loading model from repo published with  "How to train your ViT? Data,
     # Augmentation, and Regularization in Vision Transformers" paper.
+    # https://arxiv.org/abs/2106.10270
     if '-' in model_or_filename:
       filename = model_or_filename
     else:
