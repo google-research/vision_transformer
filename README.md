@@ -114,7 +114,15 @@ python -m vit_jax.main --workdir=/tmp/vit-$(date +%s) \
     --config.pretrained_dir='gs://mixer_models/imagenet21k'
 ```
 
-Or to finetune a model from the "How to train your ViT? ..." repository:
+The "How to train your ViT? ..." paper added >50k checkpoints that you can use
+with the [`configs/augreg.py`] config. When you only specify the model name (the
+`config.name` value from [`configs/model.py`]), then the best i21k checkpoint by
+upstream validation accuracy ("recommended" checkpoint, see section 4.5 of the
+paper) is chosen. To make up your mind which model you want to use, have a look
+at Figure 3 in the paper. It's also possible to choose a different checkpoint
+(see Colab [`vit_jax_augreg.ipynb`]) and then specify the value from the
+`filename` or `adapt_filename` column, which correspond to the filenames without
+`.npz` from the [`gs://vit_models/augreg`] directory.
 
 ```bash
 python -m vit_jax.main --workdir=/tmp/vit-$(date +%s) \
@@ -145,6 +153,11 @@ Notes on memory:
   opposed to an accelerator OOM), you can decrease the default
   `--config.shuffle_buffer=50000`.
 
+
+[`configs/augreg.py`]: https://github.com/google-research/vision_transformer/blob/master/vit_jax/configs/augreg.py
+[`configs/model.py`]: https://github.com/google-research/vision_transformer/blob/master/vit_jax/configs/models.py
+[`vit_jax_augreg.ipynb`]: https://colab.research.google.com/github/google-research/vision_transformer/blob/master/vit_jax_augreg.ipynb
+[`gs://vit_models/augreg`]: https://console.cloud.google.com/storage/vit_models/augreg/
 
 ## Vision Transformer
 
