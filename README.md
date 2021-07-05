@@ -235,7 +235,9 @@ wget https://storage.googleapis.com/vit_models/imagenet21k/ViT-B_16.npz
 Table below runs experiments both with `transformer.dropout_rate=0.1` (as in the
 ViT paper), and with `transformer.dropout_rate=0.0`, which improves results
 somewhat for models B=16, B/32, and L/32. The better setting was chosen for the
-default config of the models in this repository.
+default config of the models in this repository. Note also that all these models
+have `representation_size=None`, i.e. the last layer before the classification
+layer is dropped for fine-tuning.
 
 
 | model        | dataset      | dropout=0.0                                                                                                                                                         | dropout=0.1                                                                                                                                                          |
