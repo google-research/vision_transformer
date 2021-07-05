@@ -114,15 +114,15 @@ python -m vit_jax.main --workdir=/tmp/vit-$(date +%s) \
     --config.pretrained_dir='gs://mixer_models/imagenet21k'
 ```
 
-The "How to train your ViT? ..." paper added >50k checkpoints that you can use
-with the [`configs/augreg.py`] config. When you only specify the model name (the
-`config.name` value from [`configs/model.py`]), then the best i21k checkpoint by
-upstream validation accuracy ("recommended" checkpoint, see section 4.5 of the
-paper) is chosen. To make up your mind which model you want to use, have a look
-at Figure 3 in the paper. It's also possible to choose a different checkpoint
-(see Colab [`vit_jax_augreg.ipynb`]) and then specify the value from the
-`filename` or `adapt_filename` column, which correspond to the filenames without
-`.npz` from the [`gs://vit_models/augreg`] directory.
+The "How to train your ViT? ..." paper added >50k checkpoints that you can
+fine-tune with the [`configs/augreg.py`] config. When you only specify the model
+name (the `config.name` value from [`configs/model.py`]), then the best i21k
+checkpoint by upstream validation accuracy ("recommended" checkpoint, see
+section 4.5 of the paper) is chosen. To make up your mind which model you want
+to use, have a look at Figure 3 in the paper. It's also possible to choose a
+different checkpoint (see Colab [`vit_jax_augreg.ipynb`]) and then specify the
+value from the `filename` or `adapt_filename` column, which correspond to the
+filenames without `.npz` from the [`gs://vit_models/augreg`] directory.
 
 ```bash
 python -m vit_jax.main --workdir=/tmp/vit-$(date +%s) \
@@ -182,13 +182,13 @@ ViT-B/16, ViT-B/32, ViT-L/16 and ViT-L/32. We  provide the same models
 pre-trained on imagenet21k *and* fine-tuned on imagenet2012.
 
 **Update (19.5.2021)**: With publication of the "How to train your ViT? ..."
-paper, we added more than 50k ViT and hybrid models pre-trained
-on ImageNet and ImageNet-21k with various degrees of data augmentation and model
-regularization, and fine-tuned on ImageNet, Pets37, Kitti-distance, CIFAR-100,
-and Resisc45. Check out [`vit_jax_augreg.ipynb`] to navigate this treasure
-trove of models! For example, you can use that Colab to fetch the filenames
-of pre-trained and fine-tuned checkpoints from the `i21k_300` column of Table 3
-in the paper:
+paper, we added more than 50k ViT and hybrid models pre-trained on ImageNet and
+ImageNet-21k with various degrees of data augmentation and model regularization,
+and fine-tuned on ImageNet, Pets37, Kitti-distance, CIFAR-100, and Resisc45.
+Check out [`vit_jax_augreg.ipynb`] to navigate this treasure trove of models!
+For example, you can use that Colab to fetch the filenames of recommended
+pre-trained and fine-tuned checkpoints from the `i21k_300` column of Table 3 in
+the paper:
 
 |  Model   |                                   Pre-trained checkpoint                                   |   Size   |                                                       Fine-tuned checkpoint                                                        | Resolution | Img/sec | Imagenet accuracy |
 | :------- | :----------------------------------------------------------------------------------------- | -------: | :--------------------------------------------------------------------------------------------------------------------------------- | ---------: | ------: | ----------------: |
