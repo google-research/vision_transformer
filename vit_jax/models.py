@@ -265,19 +265,17 @@ class VisionTransformer(nn.Module):
 
     # Here, x is a grid of embeddings.
 
-    # (Possibly partial) Transformer.
-    # TODO(andstein) remove "optional"
-    if self.transformer is not None:
-      n, h, w, c = x.shape
-      x = jnp.reshape(x, [n, h * w, c])
+    # Transformer.
+    n, h, w, c = x.shape
+    x = jnp.reshape(x, [n, h * w, c])
 
-      # If we want to add a class token, add it here.
-      if self.classifier == 'token':
-        cls = self.param('cls', nn.initializers.zeros, (1, 1, c))
-        cls = jnp.tile(cls, [n, 1, 1])
-        x = jnp.concatenate([cls, x], axis=1)
+    # If we want to add a class token, add it here.
+    if self.classifier == 'token':
+      cls = self.param('cls', nn.initializers.zeros, (1, 1, c))
+      cls = jnp.tile(cls, [n, 1, 1])
+      x = jnp.concatenate([cls, x], axis=1)
 
-      x = Encoder(name='Transformer', **self.transformer)(x, train=train)
+    x = Encoder(name='Transformer', **self.transformer)(x, train=train)
 
     if self.classifier == 'token':
       x = x[:, 0]
