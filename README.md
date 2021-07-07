@@ -1,6 +1,8 @@
 # Vision Transformer and MLP-Mixer Architectures
 
-**Update (2.7.2021)**: Added the "When Vision Transformers Outperform ResNets..." paper, and SAM optimized ViT and MLP-Mixer checkpoints.
+**Update (2.7.2021)**: Added the "When Vision Transformers Outperform 
+ResNets..." paper, and [SAM](https://arxiv.org/abs/2010.01412) 
+(Sharpness-Aware Minimization) optimized ViT and MLP-Mixer checkpoints.
 
 **Update (20.6.2021)**: Added the "How to train your ViT? ..." paper, and a new
 Colab to explore the >50k pre-trained and fine-tuned checkpoints mentioned in
@@ -163,6 +165,7 @@ Notes on memory:
 [`gs://vit_models/augreg`]: https://console.cloud.google.com/storage/vit_models/augreg/
 [`vit_jax.ipynb`]: https://colab.research.google.com/github/google-research/vision_transformer/blob/master/vit_jax.ipynb
 [`gs://vit_models/sam`]: https://console.cloud.google.com/storage/vit_models/sam/
+[`gs://mixer_models/sam`]: https://console.cloud.google.com/storage/mixer_models/sam/
 
 ## Vision Transformer
 
@@ -182,11 +185,17 @@ to the sequence.
 
 ### Available ViT models
 
-We provide models pre-trained on imagenet21k for the following architectures:
+We provide models pre-trained on ImageNet-21k for the following architectures:
 ViT-B/16, ViT-B/32, ViT-L/16 and ViT-L/32. We  provide the same models
-pre-trained on imagenet21k *and* fine-tuned on imagenet2012.
+pre-trained on ImageNet-21k *and* fine-tuned on ImageNet.
 
-**Update (2.7.2021)**: We added the ViT models trained with [SAM](https://arxiv.org/abs/2010.01412) optimizer on imageNet2012 (with basic Inception-style preprocessing). The resultant ViTs outperform ResNets of similar size and throughput without large-scale pretraining or strong data augmentations. They also possess more perceptive attention maps. To use those models, you can simply replace the model path in [`vit_jax.ipynb`] with [`gs://vit_models/sam`].
+**Update (2.7.2021)**: We added the ViT models trained from scratch with 
+[SAM](https://arxiv.org/abs/2010.01412) optimizer on ImageNet 
+(with basic Inception-style preprocessing). The resultant ViTs outperform 
+ResNets of similar size and throughput without large-scale pre-training or 
+strong data augmentations. They also possess more perceptive attention maps. 
+To use those models, you can simply replace the model path 
+in [`vit_jax.ipynb`] with [`gs://vit_models/sam`].
 
 **Update (19.5.2021)**: With publication of the "How to train your ViT? ..."
 paper, we added more than 50k ViT and hybrid models pre-trained on ImageNet and
@@ -298,9 +307,12 @@ For installation follow [the same steps](#installation) as above.
 
 ### Available Mixer models
 
-[`gs://mixer_models/sam`]: https://console.cloud.google.com/storage/mixer_models/sam/
-
-**Update (2.7.2021)**: We added the MLP-Mixer models trained with [SAM](https://arxiv.org/abs/2010.01412) on imageNet2012 without strong augmentations ([`gs://mixer_models/sam`]). The loss landscapes become much smoother, and we found that the activate neurons for the first few layers decrease dramatically after SAM, indicating the potential redundency of image patches.
+**Update (2.7.2021)**: We added the MLP-Mixer models trained with 
+[SAM](https://arxiv.org/abs/2010.01412) on ImageNet without strong 
+augmentations ([`gs://mixer_models/sam`]). The loss landscapes become 
+much smoother, and we found that the activated neurons for the 
+first few layers decrease dramatically after SAM, 
+indicating the potential redundency of image patches.
 
 We provide the Mixer-B/16 and Mixer-L/16 models pre-trained on the ImageNet and
 ImageNet-21k datasets. Details can be found in Table 3 of the Mixer paper. All
@@ -457,7 +469,7 @@ And finally execute one of the commands mentioned in the section
   year={2021}
 }
 
-@misc{chen2021vision,
+@misc{chen2021ViT-outperform-ResNet,
   title={When Vision Transformers Outperform ResNets without Pretraining or Strong Data Augmentations}, 
   author={Xiangning Chen and Cho-Jui Hsieh and Boqing Gong},
   year={2021},
