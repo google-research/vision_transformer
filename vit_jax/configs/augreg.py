@@ -22,8 +22,8 @@ python -m vit_jax.main --workdir=/tmp/vit \
     --config.base_lr=0.01
 
 Note that by default, the best i21k pre-trained checkpoint by upstream
-validation accuracy is chosen. You can also manually select a model by
-specifying the full name (without ".npz" extension):
+validation accuracy ("recommended" checkpoint) is chosen. You can also manually
+select a model by specifying the full name (without ".npz" extension):
 
 python -m vit_jax.main --workdir=/tmp/vit \
     --config=$(pwd)/vit_jax/configs/augreg.py:R_Ti_16-i21k-300ep-lr_0.001-aug_none-wd_0.03-do_0.0-sd_0.0 \

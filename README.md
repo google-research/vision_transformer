@@ -117,7 +117,15 @@ python -m vit_jax.main --workdir=/tmp/vit-$(date +%s) \
     --config.pretrained_dir='gs://mixer_models/imagenet21k'
 ```
 
-Or to finetune a model from the "How to train your ViT? ..." repository:
+The "How to train your ViT? ..." paper added >50k checkpoints that you can
+fine-tune with the [`configs/augreg.py`] config. When you only specify the model
+name (the `config.name` value from [`configs/model.py`]), then the best i21k
+checkpoint by upstream validation accuracy ("recommended" checkpoint, see
+section 4.5 of the paper) is chosen. To make up your mind which model you want
+to use, have a look at Figure 3 in the paper. It's also possible to choose a
+different checkpoint (see Colab [`vit_jax_augreg.ipynb`]) and then specify the
+value from the `filename` or `adapt_filename` column, which correspond to the
+filenames without `.npz` from the [`gs://vit_models/augreg`] directory.
 
 ```bash
 python -m vit_jax.main --workdir=/tmp/vit-$(date +%s) \
@@ -149,6 +157,11 @@ Notes on memory:
   `--config.shuffle_buffer=50000`.
 
 
+[`configs/augreg.py`]: https://github.com/google-research/vision_transformer/blob/master/vit_jax/configs/augreg.py
+[`configs/model.py`]: https://github.com/google-research/vision_transformer/blob/master/vit_jax/configs/models.py
+[`vit_jax_augreg.ipynb`]: https://colab.research.google.com/github/google-research/vision_transformer/blob/master/vit_jax_augreg.ipynb
+[`gs://vit_models/augreg`]: https://console.cloud.google.com/storage/vit_models/augreg/
+
 ## Vision Transformer
 
 by Alexey Dosovitskiy\*†, Lucas Beyer\*, Alexander Kolesnikov\*, Dirk
@@ -173,10 +186,26 @@ pre-trained on imagenet21k *and* fine-tuned on imagenet2012.
 
 **Update (2.7.2021)**: We added the ViT models trained with [SAM](https://arxiv.org/abs/2010.01412) optimizer on imageNet2012 (with basic Inception-style preprocessing). The resultant ViTs outperform ResNets of similar size and throughput without large-scale pretraining or strong data augmentations. They also possess more perceptive attention maps.
 
-**Update (19.5.2021)**: We added more than 50k ViT and hybrid models pre-trained
-on ImageNet and ImageNet-21k with various degrees of data augmentation and model
-regularization, and fine-tuned on ImageNet, Pets37, Kitti-distance, CIFAR-100,
-and Resisc45. See second [Colab](#colab) above for details.
+**Update (19.5.2021)**: With publication of the "How to train your ViT? ..."
+paper, we added more than 50k ViT and hybrid models pre-trained on ImageNet and
+ImageNet-21k with various degrees of data augmentation and model regularization,
+and fine-tuned on ImageNet, Pets37, Kitti-distance, CIFAR-100, and Resisc45.
+Check out [`vit_jax_augreg.ipynb`] to navigate this treasure trove of models!
+For example, you can use that Colab to fetch the filenames of recommended
+pre-trained and fine-tuned checkpoints from the `i21k_300` column of Table 3 in
+the paper:
+
+|  Model   |                                   Pre-trained checkpoint                                   |   Size   |                                                       Fine-tuned checkpoint                                                        | Resolution | Img/sec | Imagenet accuracy |
+| :------- | :----------------------------------------------------------------------------------------- | -------: | :--------------------------------------------------------------------------------------------------------------------------------- | ---------: | ------: | ----------------: |
+| L/16     | `gs://vit_models/augreg/L_16-i21k-300ep-lr_0.001-aug_strong1-wd_0.1-do_0.0-sd_0.0.npz`     | 1243 MiB | `gs://vit_models/augreg/L_16-i21k-300ep-lr_0.001-aug_strong1-wd_0.1-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.01-res_384.npz`     |        384 |      50 |            85.59% |
+| B/16     | `gs://vit_models/augreg/B_16-i21k-300ep-lr_0.001-aug_medium1-wd_0.1-do_0.0-sd_0.0.npz`     |  391 MiB | `gs://vit_models/augreg/B_16-i21k-300ep-lr_0.001-aug_medium1-wd_0.1-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.03-res_384.npz`     |        384 |     138 |            85.49% |
+| S/16     | `gs://vit_models/augreg/S_16-i21k-300ep-lr_0.001-aug_light1-wd_0.03-do_0.0-sd_0.0.npz`     |  115 MiB | `gs://vit_models/augreg/S_16-i21k-300ep-lr_0.001-aug_light1-wd_0.03-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.03-res_384.npz`     |        384 |     300 |            83.73% |
+| R50+L/32 | `gs://vit_models/augreg/R50_L_32-i21k-300ep-lr_0.001-aug_medium1-wd_0.1-do_0.1-sd_0.1.npz` | 1337 MiB | `gs://vit_models/augreg/R50_L_32-i21k-300ep-lr_0.001-aug_medium1-wd_0.1-do_0.1-sd_0.1--imagenet2012-steps_20k-lr_0.01-res_384.npz` |        384 |     327 |            85.99% |
+| R26+S/32 | `gs://vit_models/augreg/R26_S_32-i21k-300ep-lr_0.001-aug_light1-wd_0.1-do_0.0-sd_0.0.npz`  |  170 MiB | `gs://vit_models/augreg/R26_S_32-i21k-300ep-lr_0.001-aug_light1-wd_0.1-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.01-res_384.npz`  |        384 |     560 |            83.85% |
+| Ti/16    | `gs://vit_models/augreg/Ti_16-i21k-300ep-lr_0.001-aug_none-wd_0.03-do_0.0-sd_0.0.npz`      |   37 MiB | `gs://vit_models/augreg/Ti_16-i21k-300ep-lr_0.001-aug_none-wd_0.03-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.03-res_384.npz`      |        384 |     610 |            78.22% |
+| B/32     | `gs://vit_models/augreg/B_32-i21k-300ep-lr_0.001-aug_light1-wd_0.1-do_0.0-sd_0.0.npz`      |  398 MiB | `gs://vit_models/augreg/B_32-i21k-300ep-lr_0.001-aug_light1-wd_0.1-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.01-res_384.npz`      |        384 |     955 |            83.59% |
+| S/32     | `gs://vit_models/augreg/S_32-i21k-300ep-lr_0.001-aug_none-wd_0.1-do_0.0-sd_0.0.npz`        |  118 MiB | `gs://vit_models/augreg/S_32-i21k-300ep-lr_0.001-aug_none-wd_0.1-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.01-res_384.npz`        |        384 |    2154 |            79.58% |
+| R+Ti/16  | `gs://vit_models/augreg/R_Ti_16-i21k-300ep-lr_0.001-aug_none-wd_0.03-do_0.0-sd_0.0.npz`    |   40 MiB | `gs://vit_models/augreg/R_Ti_16-i21k-300ep-lr_0.001-aug_none-wd_0.03-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.03-res_384.npz`    |        384 |    2426 |            75.40% |
 
 **Update (1.12.2020)**: We have added the R50+ViT-B/16 hybrid model (ViT-B/16 on
 top of a Resnet-50 backbone). When pretrained on imagenet21k, this model
@@ -211,7 +240,9 @@ wget https://storage.googleapis.com/vit_models/imagenet21k/ViT-B_16.npz
 Table below runs experiments both with `transformer.dropout_rate=0.1` (as in the
 ViT paper), and with `transformer.dropout_rate=0.0`, which improves results
 somewhat for models B=16, B/32, and L/32. The better setting was chosen for the
-default config of the models in this repository.
+default config of the models in this repository. Note also that all these models
+have `representation_size=None`, i.e. the last layer before the classification
+layer is dropped for fine-tuning.
 
 
 | model        | dataset      | dropout=0.0                                                                                                                                                         | dropout=0.1                                                                                                                                                          |
