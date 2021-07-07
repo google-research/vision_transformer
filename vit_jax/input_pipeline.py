@@ -194,6 +194,8 @@ def get_data(*,
 
   def _pp(data):
     im = image_decoder(data['image'])
+    if im.shape[-1] == 1:
+      im = tf.repeat(im, 3, axis=-1)
     if mode == 'train':
       channels = im.shape[-1]
       begin, size, _ = tf.image.sample_distorted_bounding_box(
