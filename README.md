@@ -465,17 +465,15 @@ And finally execute one of the commands mentioned in the section
 @article{steiner2021augreg,
   title={How to train your ViT? Data, Augmentation, and Regularization in Vision Transformers},
   author={Steiner, Andreas and Kolesnikov, Alexander and and Zhai, Xiaohua and Wightman, Ross and Uszkoreit, Jakob and Beyer, Lucas},
-  journal={arXiv preprint arXiv:2106.TODO},
+  journal={arXiv preprint arXiv:2106.10270},
   year={2021}
 }
 
-@misc{chen2021ViT-outperform-ResNet,
+@article{chen2021outperform,
   title={When Vision Transformers Outperform ResNets without Pretraining or Strong Data Augmentations}, 
-  author={Xiangning Chen and Cho-Jui Hsieh and Boqing Gong},
+  author={Chen, Xiangning and Hsieh, Cho-Jui and Gong, Boqing},
+  journal={arXiv preprint arXiv:2106.01548},
   year={2021},
-  eprint={2106.01548},
-  archivePrefix={arXiv},
-  primaryClass={cs.CV}
 }
 ```
 
