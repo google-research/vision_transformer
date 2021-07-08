@@ -1,5 +1,9 @@
 # Vision Transformer and MLP-Mixer Architectures
 
+**Update (2.7.2021)**: Added the "When Vision Transformers Outperform 
+ResNets..." paper, and [SAM](https://arxiv.org/abs/2010.01412) 
+(Sharpness-Aware Minimization) optimized ViT and MLP-Mixer checkpoints.
+
 **Update (20.6.2021)**: Added the "How to train your ViT? ..." paper, and a new
 Colab to explore the >50k pre-trained and fine-tuned checkpoints mentioned in
 the paper.
@@ -12,6 +16,7 @@ In this repository we release models from the papers
 - [An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale](https://arxiv.org/abs/2010.11929)
 - [MLP-Mixer: An all-MLP Architecture for Vision](https://arxiv.org/abs/2105.01601)
 - [How to train your ViT? Data, Augmentation, and Regularization in Vision Transformers](https://arxiv.org/abs/2106.10270)
+- [When Vision Transformers Outperform ResNets without Pretraining or Strong Data Augmentations](https://arxiv.org/abs/2106.01548)
 
 The models were pre-trained on the [ImageNet](http://www.image-net.org/) and
 [ImageNet-21k](http://www.image-net.org/) datasets. We provide the code for
@@ -158,6 +163,9 @@ Notes on memory:
 [`configs/model.py`]: https://github.com/google-research/vision_transformer/blob/master/vit_jax/configs/models.py
 [`vit_jax_augreg.ipynb`]: https://colab.research.google.com/github/google-research/vision_transformer/blob/master/vit_jax_augreg.ipynb
 [`gs://vit_models/augreg`]: https://console.cloud.google.com/storage/vit_models/augreg/
+[`vit_jax.ipynb`]: https://colab.research.google.com/github/google-research/vision_transformer/blob/master/vit_jax.ipynb
+[`gs://vit_models/sam`]: https://console.cloud.google.com/storage/vit_models/sam/
+[`gs://mixer_models/sam`]: https://console.cloud.google.com/storage/mixer_models/sam/
 
 ## Vision Transformer
 
@@ -177,9 +185,17 @@ to the sequence.
 
 ### Available ViT models
 
-We provide models pre-trained on imagenet21k for the following architectures:
+We provide models pre-trained on ImageNet-21k for the following architectures:
 ViT-B/16, ViT-B/32, ViT-L/16 and ViT-L/32. We  provide the same models
-pre-trained on imagenet21k *and* fine-tuned on imagenet2012.
+pre-trained on ImageNet-21k *and* fine-tuned on ImageNet.
+
+**Update (2.7.2021)**: We added the ViT models trained from scratch with 
+[SAM](https://arxiv.org/abs/2010.01412) optimizer on ImageNet 
+(with basic Inception-style preprocessing). The resultant ViTs outperform 
+ResNets of similar size and throughput without large-scale pre-training or 
+strong data augmentations. They also possess more perceptive attention maps. 
+To use those models, you can simply replace the model path 
+in [`vit_jax.ipynb`] with [`gs://vit_models/sam`].
 
 **Update (19.5.2021)**: With publication of the "How to train your ViT? ..."
 paper, we added more than 50k ViT and hybrid models pre-trained on ImageNet and
@@ -290,6 +306,13 @@ classifier head.
 For installation follow [the same steps](#installation) as above.
 
 ### Available Mixer models
+
+**Update (2.7.2021)**: We added the MLP-Mixer models trained with 
+[SAM](https://arxiv.org/abs/2010.01412) on ImageNet without strong 
+augmentations ([`gs://mixer_models/sam`]). The loss landscapes become 
+much smoother, and we found that the activated neurons for the 
+first few layers decrease dramatically after SAM, 
+indicating the potential redundency of image patches.
 
 We provide the Mixer-B/16 and Mixer-L/16 models pre-trained on the ImageNet and
 ImageNet-21k datasets. Details can be found in Table 3 of the Mixer paper. All
@@ -444,6 +467,15 @@ And finally execute one of the commands mentioned in the section
   author={Steiner, Andreas and Kolesnikov, Alexander and and Zhai, Xiaohua and Wightman, Ross and Uszkoreit, Jakob and Beyer, Lucas},
   journal={arXiv preprint arXiv:2106.TODO},
   year={2021}
+}
+
+@misc{chen2021ViT-outperform-ResNet,
+  title={When Vision Transformers Outperform ResNets without Pretraining or Strong Data Augmentations}, 
+  author={Xiangning Chen and Cho-Jui Hsieh and Boqing Gong},
+  year={2021},
+  eprint={2106.01548},
+  archivePrefix={arXiv},
+  primaryClass={cs.CV}
 }
 ```
 
