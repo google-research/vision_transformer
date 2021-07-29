@@ -189,6 +189,9 @@ We provide models pre-trained on ImageNet-21k for the following architectures:
 ViT-B/16, ViT-B/32, ViT-L/16 and ViT-L/32. We  provide the same models
 pre-trained on ImageNet-21k *and* fine-tuned on ImageNet.
 
+**Update (29.7.2021)**: Added ViT-B/8 AugReg models (3 upstream checkpoints and
+adaptations with resolution=224).
+
 **Update (2.7.2021)**: We added the ViT models trained from scratch with 
 [SAM](https://arxiv.org/abs/2010.01412) optimizer on ImageNet 
 (with basic Inception-style preprocessing). The resultant ViTs outperform 
