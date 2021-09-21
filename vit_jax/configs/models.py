@@ -153,6 +153,19 @@ def get_h14_config():
   return config
 
 
+# ViT-X/8
+#########
+
+
+@_register
+def get_b8_config():
+  """Returns the ViT-B/8 configuration."""
+  config = get_b16_config()
+  config.name = 'ViT-B_8'
+  config.patches.size = (8, 8)
+  return config
+
+
 # ViT-X/32
 ##########
 
