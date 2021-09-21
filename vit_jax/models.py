@@ -289,12 +289,12 @@ class VisionTransformer(nn.Module):
       x = nn.tanh(x)
     else:
       x = IdentityLayer(name='pre_logits')(x)
-
-    x = nn.Dense(
+    
+    if self.num_classes:
+      x = nn.Dense(
         features=self.num_classes,
         name='head',
-        kernel_init=nn.initializers.zeros)(
-            x)
+        kernel_init=nn.initializers.zeros)(x)
     return x
 
 
