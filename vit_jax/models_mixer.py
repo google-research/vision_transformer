@@ -64,5 +64,8 @@ class MlpMixer(nn.Module):
       x = MixerBlock(self.tokens_mlp_dim, self.channels_mlp_dim)(x)
     x = nn.LayerNorm(name='pre_head_layer_norm')(x)
     x = jnp.mean(x, axis=1)
-    return nn.Dense(self.num_classes, kernel_init=nn.initializers.zeros,
-                    name='head')(x)
+    if self.num_classes:
+      x = nn.Dense(self.num_classes, kernel_init=nn.initializers.zeros,
+                   name='head')(x)
+    return x
+  

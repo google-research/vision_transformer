@@ -295,6 +295,15 @@ def get_mixer_b16_config():
 
 
 @_register
+def get_mixer_b32_config():
+  """Returns Mixer-B/32 configuration."""
+  config = get_b16_config()
+  config.name = 'Mixer-B_32'
+  config.patches = ml_collections.ConfigDict({'size': (32, 32)})
+  return config
+
+
+@_register
 def get_mixer_l16_config():
   """Returns Mixer-L/16 configuration."""
   config = ml_collections.ConfigDict()
