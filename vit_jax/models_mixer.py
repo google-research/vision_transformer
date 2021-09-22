@@ -66,5 +66,6 @@ class MlpMixer(nn.Module):
     x = jnp.mean(x, axis=1)
     if self.num_classes:
       x = nn.Dense(self.num_classes, kernel_init=nn.initializers.zeros,
-                    name='head')(x)
+                   name='head')(x)
     return x
+  
