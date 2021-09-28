@@ -327,6 +327,12 @@ the models can be found at:
 
 https://console.cloud.google.com/storage/mixer_models/
 
+Note that these models are also available directly from TF-Hub:
+[sayakpaul/collections/mlp-mixer] (external contribution by [Sayak
+Paul]).
+
+[sayakpaul/collections/mlp-mixer]: https://tfhub.dev/sayakpaul/collections/mlp-mixer
+
 ### Expected Mixer results
 
 We ran the fine-tuning code on Google Cloud machine with four V100 GPUs with the
