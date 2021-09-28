@@ -58,7 +58,7 @@ checkpoints that were used to generate the data of the third paper "How to train
 your ViT? ...". The Colab includes code to explore and select checkpoints, and
 to do inference both using the JAX code from this repo, and also using the
 popular [`timm`] PyTorch library that can directly load these checkpoints as
-well. Note that a handful of models are also available directly from tfhub:
+well. Note that a handful of models are also available directly from TF-Hub:
 [sayakpaul/collections/vision_transformer] (external contribution by [Sayak
 Paul]).
 
