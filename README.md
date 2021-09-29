@@ -58,7 +58,9 @@ checkpoints that were used to generate the data of the third paper "How to train
 your ViT? ...". The Colab includes code to explore and select checkpoints, and
 to do inference both using the JAX code from this repo, and also using the
 popular [`timm`] PyTorch library that can directly load these checkpoints as
-well.
+well. Note that a handful of models are also available directly from TF-Hub:
+[sayakpaul/collections/vision_transformer] (external contribution by [Sayak
+Paul]).
 
 The second Colab also lets you fine-tune the checkpoints on any tfds dataset
 and your own dataset with examples in individual JPEG files (optionally directly
@@ -75,6 +77,8 @@ amount of data to fine-tune on. For details see the
 
 
 [`timm`]: https://github.com/rwightman/pytorch-image-models
+[sayakpaul/collections/vision_transformer]: https://tfhub.dev/sayakpaul/collections/vision_transformer
+[Sayak Paul]: https://github.com/sayakpaul
 
 
 
@@ -322,6 +326,12 @@ ImageNet-21k datasets. Details can be found in Table 3 of the Mixer paper. All
 the models can be found at:
 
 https://console.cloud.google.com/storage/mixer_models/
+
+Note that these models are also available directly from TF-Hub:
+[sayakpaul/collections/mlp-mixer] (external contribution by [Sayak
+Paul]).
+
+[sayakpaul/collections/mlp-mixer]: https://tfhub.dev/sayakpaul/collections/mlp-mixer
 
 ### Expected Mixer results
 
