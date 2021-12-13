@@ -104,6 +104,14 @@ DATASET_PRESETS = {
               'test': 'validation',
               'crop': 384})
          }),
+    'intel': ml_collections.ConfigDict(
+      {'total_steps': 10_000,
+         'pp': ml_collections.ConfigDict(
+             {'train': 'train[:98%]',
+              'validation': 'test',
+              'test': 'pred',
+              'crop': 384})
+         }),
 }
 
 
