@@ -13,6 +13,8 @@
 # limitations under the License.
 
 import collections
+from packaging import version
+import re
 
 from absl import logging
 import flax
@@ -116,6 +118,21 @@ def load(path):
   return params
 
 
+def _fix_groupnorm(params):
+  # See https://github.com/google/flax/issues/1721
+  regex = re.compile(r'gn(\d+|_root|_proj)$')
+
+  def fix_gn(args):
+    path, array = args
+    if len(path) > 1 and regex.match(path[-2]) and path[-1] in ('bias', 'scale'):
+      array = array.squeeze()
+    return (path, array)
+
+  return flax.traverse_util.unflatten_dict(dict(
+      map(fix_gn, flax.traverse_util.flatten_dict(params).items())
+  ))
+
+
 def load_pretrained(*, pretrained_path, init_params, model_config):
   """Loads/converts a pretrained checkpoint for fine tuning.
 
@@ -174,6 +191,9 @@ def load_pretrained(*, pretrained_path, init_params, model_config):
       posemb_grid = posemb_grid.reshape(1, gs_new * gs_new, -1)
       posemb = jnp.array(np.concatenate([posemb_tok, posemb_grid], axis=1))
       restored_params['Transformer']['posembed_input']['pos_embedding'] = posemb
+  
+  if version.parse(flax.__version__) >= version.parse('0.3.6'):
+    restored_params = _fix_groupnorm(restored_params)
 
   return flax.core.freeze(restored_params)
 
