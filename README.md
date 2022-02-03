@@ -166,9 +166,9 @@ Notes on memory:
 [`configs/augreg.py`]: https://github.com/google-research/vision_transformer/blob/master/vit_jax/configs/augreg.py
 [`configs/model.py`]: https://github.com/google-research/vision_transformer/blob/master/vit_jax/configs/models.py
 [`vit_jax_augreg.ipynb`]: https://colab.research.google.com/github/google-research/vision_transformer/blob/master/vit_jax_augreg.ipynb
-[`gs://vit_models/augreg`]: https://console.cloud.google.com/storage/vit_models/augreg/
+[`gs://vit_models/augreg`]: https://console.cloud.google.com/storage/browser/vit_models/augreg/
 [`vit_jax.ipynb`]: https://colab.research.google.com/github/google-research/vision_transformer/blob/master/vit_jax.ipynb
-[`gs://vit_models/sam`]: https://console.cloud.google.com/storage/vit_models/sam/
+[`gs://vit_models/sam`]: https://console.cloud.google.com/storage/browser/vit_models/sam/
 [`gs://mixer_models/sam`]: https://console.cloud.google.com/storage/mixer_models/sam/
 
 ## Vision Transformer
@@ -244,7 +244,7 @@ They are expected to achieve 81.2% and 82.7% top-1 accuracies respectively.
 
 You can find all these models in the following storage bucket:
 
-https://console.cloud.google.com/storage/vit_models/
+https://console.cloud.google.com/storage/browser/vit_models/
 
 For example, if you would like to download the ViT-B/16 pre-trained on
 imagenet21k run the following command:
