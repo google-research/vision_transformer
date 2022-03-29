@@ -18,22 +18,25 @@ def gsam_gradient(loss_fn, base_opt, inputs, targets, grad_accum_steps,
   """
   Get the GSAM gradient (https://openreview.net/pdf?id=edONMAnhLu-) of the loss function.
   Args: 
-      loss_fn: the loss function.
-      base_opt: the base optimizer.
-      inputs: the inputs to the loss function.
-      targets: the targets to the loss function.
-      grad_accum_steps: the number of steps to accumulate the gradient.
-      rho_max: the maximum rho value for perturbation of weights.
-      rho_min: the minimum rho value for perturbation of weights.
-      alpha: the alpha value for the rho schedule, see Algorithm 1 in the paper.
-      lr: current learning rate.
-      lr_max: the maximum learning rate.
-      lr_min: the minimum learning rate.
-      eps: the epsilon value for numerical stability.
+    loss_fn: the loss function.
+    base_opt: the base optimizer.
+    inputs: the inputs to the loss function.
+    targets: the targets to the loss function.
+    grad_accum_steps: the number of steps to accumulate the gradient.
+    rho_max: the maximum rho value for perturbation of weights.
+    rho_min: the minimum rho value for perturbation of weights.
+    alpha: the alpha value for the rho schedule, see Algorithm 1 in the paper.
+    lr: current learning rate.
+    lr_max: the maximum learning rate.
+    lr_min: the minimum learning rate.
+    eps: the epsilon value for numerical stability.
 
   Returns:
-      l_clean: the loss function value.
-      g_gsam: the GSAM gradient. g_gsam is not averaged across workers, need to call "jax.lax.pmean" to average.
+    l_clean: the loss function value.
+    g_gsam: the GSAM gradient. g_gsam is not averaged across workers, need to call "jax.lax.pmean" to average.
+      
+  Note:
+    Setting `rho_max=rho_min` and `alpha=0` reduces GSAM to SAM.
   """
   # Implementation considerations compared and summarized at
   # https://docs.google.com/document/d/1g3kMEvqu1DOawaflKNyUsIoQ4yIVEoyE5ZlIPkIl4Lc/edit?hl=en#
