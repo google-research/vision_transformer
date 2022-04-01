@@ -24,12 +24,14 @@ from vit_jax.configs import models as config_lib
 
 MODEL_SIZES = {
     'Mixer-B_16': 59_880_472,
+    'Mixer-B_32': 60_293_428,
     'Mixer-L_16': 208_196_168,
     'R+ViT-Ti_16': 6_337_704,
     'R26+ViT-B_32': 101_383_976,
     'R26+ViT-S_32': 36_431_912,
     'R50+ViT-B_16': 98_659_112,
     'R50+ViT-L_32': 328_994_856,
+    'ViT-B_8': 86_576_872,
     'ViT-B_16': 86_567_656,
     'ViT-B_32': 88_224_232,
     'ViT-H_14': 632_045_800,
