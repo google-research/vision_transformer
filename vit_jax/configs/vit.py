@@ -1,4 +1,4 @@
-# Copyright 2021 Google LLC.
+# Copyright 2022 Google LLC.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ from vit_jax.configs import models
 def get_config(model_dataset):
   """Returns default parameters for finetuning ViT `model` on `dataset`."""
   model, dataset = model_dataset.split(',')
-  config = common.with_dataset(common.get_config(), 'cifar10')
+  config = common.with_dataset(common.get_config(), dataset)
   get_model_config = getattr(models, f'get_{model}_config')
   config.model = get_model_config()
 

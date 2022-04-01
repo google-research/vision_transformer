@@ -1,4 +1,4 @@
-# Copyright 2021 Google LLC.
+# Copyright 2022 Google LLC.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Callable, Optional, Tuple
+from typing import Any, Callable, Optional, Tuple, Type
 
 import flax.linen as nn
 import jax.numpy as jnp
@@ -35,7 +35,7 @@ class IdentityLayer(nn.Module):
 
 
 class AddPositionEmbs(nn.Module):
-  """Adds (optionally learned) positional embeddings to the inputs.
+  """Adds learned positional embeddings to the inputs.
 
   Attributes:
     posemb_init: positional embedding initializer.
@@ -45,11 +45,7 @@ class AddPositionEmbs(nn.Module):
 
   @nn.compact
   def __call__(self, inputs):
-    """Applies AddPositionEmbs module.
-
-    By default this layer uses a fixed sinusoidal embedding table. If a
-    learned position embedding is desired, pass an initializer to
-    posemb_init.
+    """Applies the AddPositionEmbs module.
 
     Args:
       inputs: Inputs to the layer.
@@ -215,6 +211,8 @@ class VisionTransformer(nn.Module):
   resnet: Optional[Any] = None
   representation_size: Optional[int] = None
   classifier: str = 'token'
+  head_bias_init: float = 0.
+  encoder: Type[nn.Module] = Encoder
 
   @nn.compact
   def __call__(self, inputs, *, train):
@@ -265,17 +263,18 @@ class VisionTransformer(nn.Module):
 
     # Here, x is a grid of embeddings.
 
-    # Transformer.
-    n, h, w, c = x.shape
-    x = jnp.reshape(x, [n, h * w, c])
+    # (Possibly partial) Transformer.
+    if self.transformer is not None:
+      n, h, w, c = x.shape
+      x = jnp.reshape(x, [n, h * w, c])
 
-    # If we want to add a class token, add it here.
-    if self.classifier == 'token':
-      cls = self.param('cls', nn.initializers.zeros, (1, 1, c))
-      cls = jnp.tile(cls, [n, 1, 1])
-      x = jnp.concatenate([cls, x], axis=1)
+      # If we want to add a class token, add it here.
+      if self.classifier == 'token':
+        cls = self.param('cls', nn.initializers.zeros, (1, 1, c))
+        cls = jnp.tile(cls, [n, 1, 1])
+        x = jnp.concatenate([cls, x], axis=1)
 
-    x = Encoder(name='Transformer', **self.transformer)(x, train=train)
+      x = self.encoder(name='Transformer', **self.transformer)(x, train=train)
 
     if self.classifier == 'token':
       x = x[:, 0]
@@ -289,12 +288,13 @@ class VisionTransformer(nn.Module):
       x = nn.tanh(x)
     else:
       x = IdentityLayer(name='pre_logits')(x)
-    
+
     if self.num_classes:
       x = nn.Dense(
-        features=self.num_classes,
-        name='head',
-        kernel_init=nn.initializers.zeros)(x)
+          features=self.num_classes,
+          name='head',
+          kernel_init=nn.initializers.zeros,
+          bias_init=nn.initializers.constant(self.head_bias_init))(x)
     return x
 
 

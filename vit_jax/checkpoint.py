@@ -1,4 +1,4 @@
-# Copyright 2021 Google LLC.
+# Copyright 2022 Google LLC.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import collections
-from packaging import version
 import re
 
 from absl import logging
@@ -21,6 +20,7 @@ import flax
 from  flax.training import checkpoints
 import jax.numpy as jnp
 import numpy as np
+from packaging import version
 import pandas as pd
 import scipy
 from tensorflow.io import gfile  # pylint: disable=import-error
@@ -191,9 +191,10 @@ def load_pretrained(*, pretrained_path, init_params, model_config):
       posemb_grid = posemb_grid.reshape(1, gs_new * gs_new, -1)
       posemb = jnp.array(np.concatenate([posemb_tok, posemb_grid], axis=1))
       restored_params['Transformer']['posembed_input']['pos_embedding'] = posemb
-  
+
   if version.parse(flax.__version__) >= version.parse('0.3.6'):
     restored_params = _fix_groupnorm(restored_params)
+
 
   return flax.core.freeze(restored_params)
 

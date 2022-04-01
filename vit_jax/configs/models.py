@@ -1,4 +1,4 @@
-# Copyright 2021 Google LLC.
+# Copyright 2022 Google LLC.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -297,7 +297,7 @@ def get_mixer_b16_config():
 @_register
 def get_mixer_b32_config():
   """Returns Mixer-B/32 configuration."""
-  config = get_b16_config()
+  config = get_mixer_b16_config()
   config.name = 'Mixer-B_32'
   config.patches = ml_collections.ConfigDict({'size': (32, 32)})
   return config
