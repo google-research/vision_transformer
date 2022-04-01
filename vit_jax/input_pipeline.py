@@ -1,4 +1,4 @@
-# Copyright 2021 Google LLC.
+# Copyright 2022 Google LLC.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -60,7 +60,7 @@ def get_directory_info(directory):
 
 def get_dataset_info(dataset, split):
   """Returns information about a dataset.
-  
+
   Args:
     dataset: Name of tfds dataset or directory -- see `./configs/common.py`
     split: Which split to return data for (e.g. "test", or "train"; tfds also
@@ -194,8 +194,6 @@ def get_data(*,
 
   def _pp(data):
     im = image_decoder(data['image'])
-    if im.shape[-1] == 1:
-      im = tf.repeat(im, 3, axis=-1)
     if mode == 'train':
       channels = im.shape[-1]
       begin, size, _ = tf.image.sample_distorted_bounding_box(
@@ -230,7 +228,8 @@ def get_data(*,
 
   def _shard(data):
     data['image'] = tf.reshape(data['image'],
-                               [num_devices, -1, image_size, image_size, 3])
+                               [num_devices, -1, image_size, image_size,
+                                data['image'].shape[-1]])
     data['label'] = tf.reshape(data['label'],
                                [num_devices, -1, num_classes])
     return data
