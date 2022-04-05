@@ -32,7 +32,7 @@ from vit_jax import input_pipeline
 from vit_jax import models
 from vit_jax import momentum_clip
 from vit_jax import utils
-
+from vit_jax.gsam import gsam_gradient
 
 def make_update_fn(*, apply_fn, accum_steps, lr_fn):
   """Returns update step for data parallel training."""
@@ -56,14 +56,26 @@ def make_update_fn(*, apply_fn, accum_steps, lr_fn):
           inputs=images,
           train=True)
       return cross_entropy_loss(logits=logits, labels=labels)
+    
+    learning_rate = lr_fn(step)
+    
+    if config.get("GSAM", False):
+      # get hyper-params for GSAM
+      RHO_MAX, RHO_MIN = config.get("rho_max", 0.5), config.get("rho_min", 0.1)
+      LR_MAX, LR_MIN = config.get("base_lr", 3e-3), config.get("min_lr", 3e-5)   
+      ALPHA = config.get("alpha", 0.05)
 
-    l, g = utils.accumulate_gradient(
+      l, g = gsam_gradient(loss_fn=loss_fn, base_opt=opt, inputs=batch['image'], targets=batch['label'],
+          grad_accum_steps=accum_steps, rho_max=RHO_MAX, rho_min=RHO_MIN, alpha=ALPHA, lr=learning_rate, lr_max=LR_MAX, lr_min=LR_MIN)
+    else:
+      l, g = utils.accumulate_gradient(
         jax.value_and_grad(loss_fn), opt.target, batch['image'], batch['label'],
         accum_steps)
+      
     g = jax.tree_map(lambda x: jax.lax.pmean(x, axis_name='batch'), g)
     l = jax.lax.pmean(l, axis_name='batch')
 
-    opt = opt.apply_gradient(g, learning_rate=lr_fn(step))
+    opt = opt.apply_gradient(g, learning_rate=learning_rate)
     return opt, l, new_rng
 
   return jax.pmap(update_fn, axis_name='batch', donate_argnums=(0,))
