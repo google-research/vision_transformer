@@ -38,8 +38,6 @@ def gsam_gradient(loss_fn, base_opt, inputs, targets, grad_accum_steps,
   Note:
     Setting `rho_max=rho_min` and `alpha=0` reduces GSAM to SAM.
   """
-  # Implementation considerations compared and summarized at
-  # https://docs.google.com/document/d/1g3kMEvqu1DOawaflKNyUsIoQ4yIVEoyE5ZlIPkIl4Lc/edit?hl=en#
   l_clean, g_clean = utils.accumulate_gradient(jax.value_and_grad(loss_fn), base_opt.target,
                                 inputs, targets, grad_accum_steps)
   g_clean_normalized, g_clean_length = dual_vector(g_clean)
