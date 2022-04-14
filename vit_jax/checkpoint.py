@@ -24,6 +24,7 @@ from packaging import version
 import pandas as pd
 import scipy
 from tensorflow.io import gfile  # pylint: disable=import-error
+import tqdm
 
 
 def _flatten_dict(d, parent_key='', sep='/'):
@@ -105,6 +106,24 @@ def recover_tree(keys, values):
     k_subtree, v_subtree = zip(*kv_pairs)
     tree[k] = recover_tree(k_subtree, v_subtree)
   return tree
+
+
+def copy(src, dst, progress=True, block_size=1024 * 1024 * 10):
+  """Copies a file with progress bar.
+
+  Args:
+    src: Source file. Path must be readable by `tf.io.gfile`.
+    dst: Destination file. Path must be readable by `tf.io.gfile`.
+    progress: Whether to show a progres bar.
+    block_size: Size of individual blocks to be read/written.
+  """
+  stats = gfile.stat(src)
+  n = int(np.ceil(stats.length / block_size))
+  range_or_trange = tqdm.trange if progress else range
+  with gfile.GFile(src, 'rb') as fin:
+    with gfile.GFile(dst, 'wb') as fout:
+      for _ in range_or_trange(n):
+        fout.write(fin.read(block_size))
 
 
 def load(path):

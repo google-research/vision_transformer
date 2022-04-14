@@ -113,10 +113,10 @@ def train_and_evaluate(config: ml_collections.ConfigDict, workdir: str):
       logging.info('Selected fillename="%s" for "%s" with final_val=%.3f',
                    filename, model_or_filename, best.final_val)
     pretrained_path = os.path.join(config.pretrained_dir,
-                                   f'{config.model.name}.npz')
+                                   f'{config.model.model_name}.npz')
   else:
     # ViT / Mixer papers
-    filename = config.model.name
+    filename = config.model.model_name
 
   pretrained_path = os.path.join(config.pretrained_dir, f'{filename}.npz')
   if not tf.io.gfile.exists(pretrained_path):

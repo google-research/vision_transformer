@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any
+from typing import Any, Optional
 
 import einops
 import flax.linen as nn
@@ -53,6 +53,7 @@ class MlpMixer(nn.Module):
   hidden_dim: int
   tokens_mlp_dim: int
   channels_mlp_dim: int
+  model_name: Optional[str] = None
 
   @nn.compact
   def __call__(self, inputs, *, train):
@@ -68,4 +69,3 @@ class MlpMixer(nn.Module):
       x = nn.Dense(self.num_classes, kernel_init=nn.initializers.zeros,
                    name='head')(x)
     return x
-  

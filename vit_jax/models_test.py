@@ -23,6 +23,8 @@ from vit_jax.configs import models as config_lib
 
 
 MODEL_SIZES = {
+    'LiT-B16B': 195_871_489,
+    'LiT-L16L': 638_443_521,
     'Mixer-B_16': 59_880_472,
     'Mixer-B_32': 60_293_428,
     'Mixer-L_16': 208_196_168,
@@ -52,13 +54,20 @@ class ModelsTest(parameterized.TestCase):
   @parameterized.parameters(*list(MODEL_SIZES.items()))
   def test_can_instantiate(self, name, size):
     rng = jax.random.PRNGKey(0)
-    config = config_lib.MODEL_CONFIGS[name]
-    model_cls = models.MlpMixer if 'Mixer' in name else models.VisionTransformer
-    model = model_cls(num_classes=1_000, **config)
-    inputs = jnp.ones([2, 224, 224, 3], jnp.float32)
-    variables = model.init(rng, inputs, train=False)
-    outputs = model.apply(variables, inputs, train=False)
-    self.assertEqual((2, 1000), outputs.shape)
+    kw = {} if name.startswith('LiT-') else dict(num_classes=1_000)
+    model = models.get_model(name, **kw)
+    batch_size = 2
+    images = jnp.ones([batch_size, 224, 224, 3], jnp.float32)
+    if name.startswith('LiT-'):
+      tokens = jnp.ones([batch_size, model.pp.max_len], jnp.int32)
+      variables = model.init(rng, images=images, tokens=tokens)
+      zimg, ztxt, _ = model.apply(variables, images=images, tokens=tokens)
+      self.assertEqual(zimg.shape[0], batch_size)
+      self.assertEqual(zimg.shape, ztxt.shape)
+    else:
+      variables = model.init(rng, images, train=False)
+      outputs = model.apply(variables, images, train=False)
+      self.assertEqual((2, 1000), outputs.shape)
     param_count = sum(p.size for p in jax.tree_flatten(variables)[0])
     self.assertEqual(
         size, param_count,
