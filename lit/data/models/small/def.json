@@ -1,0 +1,1 @@
+{"description": "LuuU, ViT-L image, Vit-S text, 16k vocabulary", "tokenizer_type": "BPE", "temperature": 123.1986911895798, "pad_value": 1, "max_len": 16, "embedding_size": 1024, "xwid": "36881000/3"}
