@@ -1,7 +1,7 @@
 # Vision Transformer and MLP-Mixer Architectures
 
-**Update (2.7.2021)**: Added the "When Vision Transformers Outperform 
-ResNets..." paper, and [SAM](https://arxiv.org/abs/2010.01412) 
+**Update (2.7.2021)**: Added the "When Vision Transformers Outperform
+ResNets..." paper, and [SAM](https://arxiv.org/abs/2010.01412)
 (Sharpness-Aware Minimization) optimized ViT and MLP-Mixer checkpoints.
 
 **Update (20.6.2021)**: Added the "How to train your ViT? ..." paper, and a new
@@ -51,7 +51,7 @@ This Colab allows you to edit the files from the repository directly in the
 Colab UI and has annotated Colab cells that walk you through the code step by
 step, and lets you interact with the data.
 
-https://colab.research.google.com/github/google-research/vision_transformer/blob/master/vit_jax.ipynb
+https://colab.research.google.com/github/google-research/vision_transformer/blob/main/vit_jax.ipynb
 
 The second Colab allows you to explore the >50k Vision Transformer and hybrid
 checkpoints that were used to generate the data of the third paper "How to train
@@ -66,7 +66,7 @@ The second Colab also lets you fine-tune the checkpoints on any tfds dataset
 and your own dataset with examples in individual JPEG files (optionally directly
 reading from Google Drive).
 
-https://colab.research.google.com/github/google-research/vision_transformer/blob/master/vit_jax_augreg.ipynb
+https://colab.research.google.com/github/google-research/vision_transformer/blob/main/vit_jax_augreg.ipynb
 
 **Note**: As for now (6/20/21) Google Colab only supports a single GPU (Nvidia
 Tesla T4), and TPUs (currently TPUv2-8) are attached indirectly to the Colab VM
@@ -163,11 +163,11 @@ Notes on memory:
   `--config.shuffle_buffer=50000`.
 
 
-[`configs/augreg.py`]: https://github.com/google-research/vision_transformer/blob/master/vit_jax/configs/augreg.py
-[`configs/model.py`]: https://github.com/google-research/vision_transformer/blob/master/vit_jax/configs/models.py
-[`vit_jax_augreg.ipynb`]: https://colab.research.google.com/github/google-research/vision_transformer/blob/master/vit_jax_augreg.ipynb
+[`configs/augreg.py`]: https://github.com/google-research/vision_transformer/blob/main/vit_jax/configs/augreg.py
+[`configs/model.py`]: https://github.com/google-research/vision_transformer/blob/main/vit_jax/configs/models.py
+[`vit_jax_augreg.ipynb`]: https://colab.research.google.com/github/google-research/vision_transformer/blob/main/vit_jax_augreg.ipynb
 [`gs://vit_models/augreg`]: https://console.cloud.google.com/storage/browser/vit_models/augreg/
-[`vit_jax.ipynb`]: https://colab.research.google.com/github/google-research/vision_transformer/blob/master/vit_jax.ipynb
+[`vit_jax.ipynb`]: https://colab.research.google.com/github/google-research/vision_transformer/blob/main/vit_jax.ipynb
 [`gs://vit_models/sam`]: https://console.cloud.google.com/storage/browser/vit_models/sam/
 [`gs://mixer_models/sam`]: https://console.cloud.google.com/storage/mixer_models/sam/
 
@@ -483,7 +483,7 @@ And finally execute one of the commands mentioned in the section
 }
 
 @article{chen2021outperform,
-  title={When Vision Transformers Outperform ResNets without Pretraining or Strong Data Augmentations}, 
+  title={When Vision Transformers Outperform ResNets without Pretraining or Strong Data Augmentations},
   author={Chen, Xiangning and Hsieh, Cho-Jui and Gong, Boqing},
   journal={arXiv preprint arXiv:2106.01548},
   year={2021},
