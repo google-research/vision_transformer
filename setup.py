@@ -41,7 +41,6 @@ install_requires = [
     'tensorflow_probability',
     'tensorflow',
     'tensorflow_text',
-    'tqdm',
 ]
 
 __version__ = None
