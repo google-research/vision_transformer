@@ -1,5 +1,7 @@
 # Vision Transformer and MLP-Mixer Architectures
 
+**Update (14.4.2022)**: Added models and Colab for [LiT models](#lit-models).
+
 **Update (2.7.2021)**: Added the "When Vision Transformers Outperform
 ResNets..." paper, and [SAM](https://arxiv.org/abs/2010.01412)
 (Sharpness-Aware Minimization) optimized ViT and MLP-Mixer checkpoints.
@@ -17,6 +19,7 @@ In this repository we release models from the papers
 - [MLP-Mixer: An all-MLP Architecture for Vision](https://arxiv.org/abs/2105.01601)
 - [How to train your ViT? Data, Augmentation, and Regularization in Vision Transformers](https://arxiv.org/abs/2106.10270)
 - [When Vision Transformers Outperform ResNets without Pretraining or Strong Data Augmentations](https://arxiv.org/abs/2106.01548)
+- [LiT: Zero-Shot Transfer with Locked-image text Tuning](https://arxiv.org/abs/2111.07991)
 
 The models were pre-trained on the [ImageNet](http://www.image-net.org/) and
 [ImageNet-21k](http://www.image-net.org/) datasets. We provide the code for
@@ -26,20 +29,21 @@ fine-tuning the released models in
 Table of contents:
 
 - [Vision Transformer and MLP-Mixer Architectures](#vision-transformer-and-mlp-mixer-architectures)
-	- [Colab](#colab)
-	- [Installation](#installation)
-	- [Fine-tuning a model](#fine-tuning-a-model)
-	- [Vision Transformer](#vision-transformer)
-		- [Available ViT models](#available-vit-models)
-		- [Expected ViT results](#expected-vit-results)
-	- [MLP-Mixer](#mlp-mixer)
-		- [Available Mixer models](#available-mixer-models)
-		- [Expected Mixer results](#expected-mixer-results)
-	- [Running on cloud](#running-on-cloud)
-		- [Create a VM](#create-a-vm)
-		- [Setup VM](#setup-vm)
-	- [Bibtex](#bibtex)
-	- [Disclaimers](#disclaimers)
+  - [Colab](#colab)
+  - [Installation](#installation)
+  - [Fine-tuning a model](#fine-tuning-a-model)
+  - [Vision Transformer](#vision-transformer)
+    - [Available ViT models](#available-vit-models)
+    - [Expected ViT results](#expected-vit-results)
+  - [MLP-Mixer](#mlp-mixer)
+    - [Available Mixer models](#available-mixer-models)
+    - [Expected Mixer results](#expected-mixer-results)
+  - [LiT models](#lit-models)
+  - [Running on cloud](#running-on-cloud)
+    - [Create a VM](#create-a-vm)
+    - [Setup VM](#setup-vm)
+  - [Bibtex](#bibtex)
+  - [Disclaimers](#disclaimers)
 
 
 ## Colab
@@ -346,6 +350,24 @@ ImageNet-21k | Mixer-B/16 | cifar10 | 96.82%   | 9.6h            | [tensorboard.
 ImageNet-21k | Mixer-L/16 | cifar10 | 98.34%   | 10.0h           | [tensorboard.dev](https://tensorboard.dev/experiment/dolAJyQYTYmudytjalF6Jg/)
 
 
+## LiT models
+
+We have just published a post on the Google AI blog
+[LiT: adding language understanding to image models](http://ai.googleblog.com/2022/04/locked-image-tuning-adding-language.html)
+about our new CVPR paper "LiT: Zero-Shot Transfer with Locked-image text Tuning"
+(https://arxiv.org/abs/2111.07991).
+
+We provide a in-browser demo with small text encoders for interactive use (the
+smallest models should even run on a modern cell phone):
+
+https://google-research.github.io/vision_transformer/lit/
+
+And finally a Colab to use the much larger JAX models with both image and text
+encoders:
+
+https://colab.research.google.com/github/google-research/vision_transformer/blob/main/lit.ipynb
+
+
 ## Running on cloud
 
 While above [colabs](#colab) are pretty useful to get started, you would usually
@@ -487,6 +509,13 @@ And finally execute one of the commands mentioned in the section
   author={Chen, Xiangning and Hsieh, Cho-Jui and Gong, Boqing},
   journal={arXiv preprint arXiv:2106.01548},
   year={2021},
+}
+
+@article{zhai2022lit,
+  title={LiT: Zero-Shot Transfer with Locked-image Text Tuning},
+  author={Zhai, Xiaohua and Wang, Xiao and Mustafa, Basil and Steiner, Andreas and Keysers, Daniel and Kolesnikov, Alexander and Beyer, Lucas},
+  journal={CVPR},
+  year={2022}
 }
 ```
 

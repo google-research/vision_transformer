@@ -29,7 +29,7 @@ AUGREG_CONFIGS = {}
 def _register(get_config):
   """Adds reference to model config into MODEL_CONFIGS and AUGREG_CONFIGS."""
   config = get_config().lock()
-  name = config.get('name')
+  name = config.get('model_name')
   MODEL_CONFIGS[name] = config
   if 'Mixer' not in name and name not in ('testing', 'ViT-L_32', 'R50+ViT-B_16',
                                           'ViT-H_14'):
@@ -45,7 +45,7 @@ def get_testing_config():
   """Returns a simple config used for testing."""
   config = ml_collections.ConfigDict()
   # Only used for testing.
-  config.name = 'testing'
+  config.model_name = 'testing'
   config.patches = ml_collections.ConfigDict({'size': (16, 16)})
   config.hidden_size = 10
   config.transformer = ml_collections.ConfigDict()
@@ -67,7 +67,7 @@ def get_testing_config():
 def get_ti16_config():
   """Returns the ViT-Ti/16 configuration."""
   config = ml_collections.ConfigDict()
-  config.name = 'ViT-Ti_16'
+  config.model_name = 'ViT-Ti_16'
   config.patches = ml_collections.ConfigDict({'size': (16, 16)})
   config.hidden_size = 192
   config.transformer = ml_collections.ConfigDict()
@@ -85,7 +85,7 @@ def get_ti16_config():
 def get_s16_config():
   """Returns the ViT-S/16 configuration."""
   config = ml_collections.ConfigDict()
-  config.name = 'ViT-S_16'
+  config.model_name = 'ViT-S_16'
   config.patches = ml_collections.ConfigDict({'size': (16, 16)})
   config.hidden_size = 384
   config.transformer = ml_collections.ConfigDict()
@@ -103,7 +103,7 @@ def get_s16_config():
 def get_b16_config():
   """Returns the ViT-B/16 configuration."""
   config = ml_collections.ConfigDict()
-  config.name = 'ViT-B_16'
+  config.model_name = 'ViT-B_16'
   config.patches = ml_collections.ConfigDict({'size': (16, 16)})
   config.hidden_size = 768
   config.transformer = ml_collections.ConfigDict()
@@ -121,7 +121,7 @@ def get_b16_config():
 def get_l16_config():
   """Returns the ViT-L/16 configuration."""
   config = ml_collections.ConfigDict()
-  config.name = 'ViT-L_16'
+  config.model_name = 'ViT-L_16'
   config.patches = ml_collections.ConfigDict({'size': (16, 16)})
   config.hidden_size = 1024
   config.transformer = ml_collections.ConfigDict()
@@ -139,7 +139,7 @@ def get_l16_config():
 def get_h14_config():
   """Returns the ViT-H/14 configuration."""
   config = ml_collections.ConfigDict()
-  config.name = 'ViT-H_14'
+  config.model_name = 'ViT-H_14'
   config.patches = ml_collections.ConfigDict({'size': (14, 14)})
   config.hidden_size = 1280
   config.transformer = ml_collections.ConfigDict()
@@ -161,7 +161,7 @@ def get_h14_config():
 def get_b8_config():
   """Returns the ViT-B/8 configuration."""
   config = get_b16_config()
-  config.name = 'ViT-B_8'
+  config.model_name = 'ViT-B_8'
   config.patches.size = (8, 8)
   return config
 
@@ -174,7 +174,7 @@ def get_b8_config():
 def get_s32_config():
   """Returns the ViT-S/32 configuration."""
   config = get_s16_config()
-  config.name = 'ViT-S_32'
+  config.model_name = 'ViT-S_32'
   config.patches.size = (32, 32)
   return config
 
@@ -183,7 +183,7 @@ def get_s32_config():
 def get_b32_config():
   """Returns the ViT-B/32 configuration."""
   config = get_b16_config()
-  config.name = 'ViT-B_32'
+  config.model_name = 'ViT-B_32'
   config.patches.size = (32, 32)
   return config
 
@@ -193,7 +193,7 @@ def get_l32_config():
   """Returns the ViT-L/32 configuration."""
   config = get_l16_config()
   config.transformer.dropout_rate = 0.0
-  config.name = 'ViT-L_32'
+  config.model_name = 'ViT-L_32'
   config.patches.size = (32, 32)
   return config
 
@@ -206,7 +206,7 @@ def get_l32_config():
 def get_r_ti16_config():
   """Returns the Resnet stem + ViT-Ti/16 configuration."""
   config = get_ti16_config()
-  config.name = 'R+ViT-Ti_16'
+  config.model_name = 'R+ViT-Ti_16'
   config.patches.size = (8, 8)
   config.resnet = ml_collections.ConfigDict()
   # The resnet stem alone downscales 2x, making /16 with 8x8 patches.
@@ -220,7 +220,7 @@ def get_r50_b16_config():
   """Returns the Resnet50 + ViT-B/16 configuration."""
   config = get_b16_config()
   config.transformer.dropout_rate = 0.1
-  config.name = 'R50+ViT-B_16'
+  config.model_name = 'R50+ViT-B_16'
   config.patches.size = (1, 1)
   config.resnet = ml_collections.ConfigDict()
   # Note that the "real" Resnet50 has (3, 4, 6, 3) bottleneck blocks. Here
@@ -239,7 +239,7 @@ def get_r50_b16_config():
 def get_r26_b32_config():
   """Returns the Resnet26 + ViT-B/32 configuration."""
   config = get_b32_config()
-  config.name = 'R26+ViT-B_32'
+  config.model_name = 'R26+ViT-B_32'
   config.patches.size = (1, 1)
   config.resnet = ml_collections.ConfigDict()
   # Using four bottleneck blocks results in a downscaling of 2^(1 + 4)=32 which
@@ -253,7 +253,7 @@ def get_r26_b32_config():
 def get_r26_s32_config():
   """Returns the Resnet26 + ViT-S/32 configuration."""
   config = get_s16_config()
-  config.name = 'R26+ViT-S_32'
+  config.model_name = 'R26+ViT-S_32'
   config.patches.size = (1, 1)
   config.resnet = ml_collections.ConfigDict()
   # Using four bottleneck blocks results in a downscaling of 2^(1 + 4)=32 which
@@ -267,7 +267,7 @@ def get_r26_s32_config():
 def get_r50_l32_config():
   """Returns the Resnet50 + ViT-L/32 configuration."""
   config = get_l16_config()
-  config.name = 'R50+ViT-L_32'
+  config.model_name = 'R50+ViT-L_32'
   config.patches.size = (1, 1)
   config.resnet = ml_collections.ConfigDict()
   # Using four bottleneck blocks results in a downscaling of 2^(1 + 4)=32 which
@@ -285,7 +285,7 @@ def get_r50_l32_config():
 def get_mixer_b16_config():
   """Returns Mixer-B/16 configuration."""
   config = ml_collections.ConfigDict()
-  config.name = 'Mixer-B_16'
+  config.model_name = 'Mixer-B_16'
   config.patches = ml_collections.ConfigDict({'size': (16, 16)})
   config.hidden_dim = 768
   config.num_blocks = 12
@@ -298,7 +298,7 @@ def get_mixer_b16_config():
 def get_mixer_b32_config():
   """Returns Mixer-B/32 configuration."""
   config = get_mixer_b16_config()
-  config.name = 'Mixer-B_32'
+  config.model_name = 'Mixer-B_32'
   config.patches = ml_collections.ConfigDict({'size': (32, 32)})
   return config
 
@@ -307,10 +307,44 @@ def get_mixer_b32_config():
 def get_mixer_l16_config():
   """Returns Mixer-L/16 configuration."""
   config = ml_collections.ConfigDict()
-  config.name = 'Mixer-L_16'
+  config.model_name = 'Mixer-L_16'
   config.patches = ml_collections.ConfigDict({'size': (16, 16)})
   config.hidden_dim = 1024
   config.num_blocks = 24
   config.tokens_mlp_dim = 512
   config.channels_mlp_dim = 4096
+  return config
+
+
+# LiT
+#####
+
+
+@_register
+def get_lit_b16b_config():
+  """Returns a LiT model with ViT-Base and BERT-Base towers."""
+  config = ml_collections.ConfigDict()
+  config.model_name = 'LiT-B16B'
+  config.out_dim = (768, 768)
+  config.image = get_b16_config()
+  config.text = {}
+  config.text.config = 'base'
+  config.pp = {}
+  config.pp.size = 224
+  config.pp.max_len = 16
+  return config
+
+
+@_register
+def get_lit_l16l_config():
+  """Returns a LiT model with ViT-Large and BERT-Large towers."""
+  config = ml_collections.ConfigDict()
+  config.model_name = 'LiT-L16L'
+  config.out_dim = (None, 1024)
+  config.image = get_l16_config()
+  config.text = {}
+  config.text.config = 'large'
+  config.pp = {}
+  config.pp.size = 224
+  config.pp.max_len = 16
   return config

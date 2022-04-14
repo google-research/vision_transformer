@@ -30,6 +30,7 @@ install_requires = [
     'clu',
     'einops',
     'flax',
+    'flaxformer @ git+https://github.com/google/flaxformer',
     'jax',
     'ml-collections',
     'numpy',
@@ -39,6 +40,8 @@ install_requires = [
     'tensorflow_datasets',
     'tensorflow_probability',
     'tensorflow',
+    'tensorflow_text',
+    'tqdm',
 ]
 
 __version__ = None
