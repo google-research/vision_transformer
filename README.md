@@ -19,7 +19,6 @@ In this repository we release models from the papers
 - [MLP-Mixer: An all-MLP Architecture for Vision](https://arxiv.org/abs/2105.01601)
 - [How to train your ViT? Data, Augmentation, and Regularization in Vision Transformers](https://arxiv.org/abs/2106.10270)
 - [When Vision Transformers Outperform ResNets without Pretraining or Strong Data Augmentations](https://arxiv.org/abs/2106.01548)
-- [LiT: Zero-Shot Transfer with Locked-image text Tuning](https://arxiv.org/abs/2111.07991)
 
 The models were pre-trained on the [ImageNet](http://www.image-net.org/) and
 [ImageNet-21k](http://www.image-net.org/) datasets. We provide the code for
@@ -29,21 +28,21 @@ fine-tuning the released models in
 Table of contents:
 
 - [Vision Transformer and MLP-Mixer Architectures](#vision-transformer-and-mlp-mixer-architectures)
-  - [Colab](#colab)
-  - [Installation](#installation)
-  - [Fine-tuning a model](#fine-tuning-a-model)
-  - [Vision Transformer](#vision-transformer)
-    - [Available ViT models](#available-vit-models)
-    - [Expected ViT results](#expected-vit-results)
-  - [MLP-Mixer](#mlp-mixer)
-    - [Available Mixer models](#available-mixer-models)
-    - [Expected Mixer results](#expected-mixer-results)
+	- [Colab](#colab)
+	- [Installation](#installation)
+	- [Fine-tuning a model](#fine-tuning-a-model)
+	- [Vision Transformer](#vision-transformer)
+		- [Available ViT models](#available-vit-models)
+		- [Expected ViT results](#expected-vit-results)
+	- [MLP-Mixer](#mlp-mixer)
+		- [Available Mixer models](#available-mixer-models)
+		- [Expected Mixer results](#expected-mixer-results)
   - [LiT models](#lit-models)
-  - [Running on cloud](#running-on-cloud)
-    - [Create a VM](#create-a-vm)
-    - [Setup VM](#setup-vm)
-  - [Bibtex](#bibtex)
-  - [Disclaimers](#disclaimers)
+	- [Running on cloud](#running-on-cloud)
+		- [Create a VM](#create-a-vm)
+		- [Setup VM](#setup-vm)
+	- [Bibtex](#bibtex)
+	- [Disclaimers](#disclaimers)
 
 
 ## Colab
