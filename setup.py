@@ -44,6 +44,10 @@ install_requires = [
     'tqdm',
 ]
 
+tests_require = [
+    'pytest',
+]
+
 __version__ = None
 
 with open(os.path.join(here, 'version.py')) as f:
@@ -70,4 +74,6 @@ setup(
     packages=find_packages(),
     zip_safe=False,
     install_requires=install_requires,
+    tests_require=tests_require,
+    extras_require=dict(test=tests_require),
     )

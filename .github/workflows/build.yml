@@ -1,0 +1,59 @@
+# This workflow will install Python dependencies, run tests and lint.
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+      - 'test_*'
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.7, 3.8, 3.9]
+    steps:
+    - name: Cancel previous
+      uses: styfle/cancel-workflow-action@0.8.0
+      with:
+        access_token: ${{ github.token }}
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v1
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        pip install .
+        pip install .[test]
+    - name: Test with pytest and generate coverage report
+      run: |
+        pytest vit_jax
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v1
+      with:
+        file: ./coverage.xml
+    # The below step just reports the success or failure of tests as a "commit status".
+    # This is needed for copybara integration.
+    - name: Report success or failure as github status
+      if: always()
+      shell: bash
+      run: |
+        status="${{ job.status }}"
+        lowercase_status=$(echo $status | tr '[:upper:]' '[:lower:]')
+        curl -sS --request POST \
+        --url https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.sha }} \
+        --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' \
+        --header 'content-type: application/json' \
+        --data '{
+           "state": "'$lowercase_status'",
+           "target_url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+           "description": "'$status'",
+           "context": "github-actions/Build"
+           }'
