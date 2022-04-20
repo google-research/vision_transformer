@@ -214,7 +214,6 @@ def load_pretrained(*, pretrained_path, init_params, model_config):
   if version.parse(flax.__version__) >= version.parse('0.3.6'):
     restored_params = _fix_groupnorm(restored_params)
 
-
   return flax.core.freeze(restored_params)
 
 
