@@ -167,25 +167,27 @@ class Encoder(nn.Module):
   num_heads: int
   dropout_rate: float = 0.1
   attention_dropout_rate: float = 0.1
+  add_position_embedding: bool = True
 
   @nn.compact
-  def __call__(self, inputs, *, train):
+  def __call__(self, x, *, train):
     """Applies Transformer model on the inputs.
 
     Args:
-      inputs: Inputs to the layer.
+      x: Inputs to the layer.
       train: Set to `True` when training.
 
     Returns:
       output of a transformer encoder.
     """
-    assert inputs.ndim == 3  # (batch, len, emb)
+    assert x.ndim == 3  # (batch, len, emb)
 
-    x = AddPositionEmbs(
-        posemb_init=nn.initializers.normal(stddev=0.02),  # from BERT.
-        name='posembed_input')(
-            inputs)
-    x = nn.Dropout(rate=self.dropout_rate)(x, deterministic=not train)
+    if self.add_position_embedding:
+      x = AddPositionEmbs(
+          posemb_init=nn.initializers.normal(stddev=0.02),  # from BERT.
+          name='posembed_input')(
+              x)
+      x = nn.Dropout(rate=self.dropout_rate)(x, deterministic=not train)
 
     # Input Encoder
     for lyr in range(self.num_layers):

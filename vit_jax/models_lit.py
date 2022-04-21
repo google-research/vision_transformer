@@ -67,6 +67,45 @@ class BertModel(nn.Module):
     return x, out
 
 
+class TextTransformer(nn.Module):
+  """Simple text transformer."""
+
+  num_classes: int
+  width: int = 512
+  num_layers: int = 12
+  mlp_dim: int = 2048
+  num_heads: int = 8
+  dropout_rate: float = 0.0
+  vocab_size: int = 32_000
+
+  @nn.compact
+  def __call__(self, x):
+    out = {}
+
+    embedding = nn.Embed(num_embeddings=self.vocab_size, features=self.width)
+    x = out['embedded'] = embedding(x)
+
+    # Add posemb
+    n, l, d = x.shape  # pylint: disable=unused-variable
+    x = x + self.param('pos_embedding',
+                       nn.initializers.normal(stddev=1 / jnp.sqrt(d)),
+                       (1, l, d), x.dtype)
+
+    x = models_vit.Encoder(
+        num_layers=self.num_layers,
+        mlp_dim=self.mlp_dim,
+        num_heads=self.num_heads,
+        dropout_rate=self.dropout_rate,
+        attention_dropout_rate=0,
+        add_position_embedding=False)(
+            x, train=False)
+
+    x = out['pre_logits'] = x[:, -1, :]  # note that we take *last* token
+    x = out['logits'] = nn.Dense(self.num_classes, name='head')(x)
+
+    return x, out
+
+
 class LitModel(nn.Module):
   """Locked-image text Tuning model.
 
@@ -85,6 +124,7 @@ class LitModel(nn.Module):
   """
 
   image: ml_collections.ConfigDict
+  text_model: str
   text: ml_collections.ConfigDict
   pp: ml_collections.ConfigDict
   out_dim: Tuple[Optional[int], Optional[int]]
@@ -112,22 +152,31 @@ class LitModel(nn.Module):
         if cache:
           checkpoint.copy(path, local_path)
       if os.path.exists(local_path):
-        print('\nReusing local copy:', local_path)
+        print('\n⚠️ Reusing local copy:', local_path)
         path = local_path
     return {'params': checkpoint.load(path)}
+
+  @property
+  def vocab_path(self):
+    ext = {
+        'bert': 'txt',
+        'sentencepiece': 'model',
+    }[self.pp.tokenizer_name]
+    return f'{BASE_PATH}/{self.model_name}.{ext}'
 
   def get_pp(self, crop=False):
     """Returns a preprocessing function suitable for `tf.data.Dataset.map()`."""
     return preprocess.get_pp(
-        vocab_path=f'{BASE_PATH}/{self.model_name}.txt',
+        tokenizer_name=self.pp.tokenizer_name,
+        vocab_path=self.vocab_path,
         max_len=self.pp.max_len,
         size=self.pp.size,
         crop=crop)
 
   def get_tokenizer(self):
     """Returns a tokenizer."""
-    return preprocess.BertTokenizer(
-        vocab_path=f'{BASE_PATH}/{self.model_name}.txt',
+    return preprocess.get_tokenizer(self.pp.tokenizer_name)(
+        vocab_path=self.vocab_path,
         max_len=self.pp.max_len)
 
   def get_image_preprocessing(self, crop=False):
@@ -162,7 +211,11 @@ class LitModel(nn.Module):
 
     if tokens is not None:
       # Embed the text:
-      text_model = BertModel(
+      model_class = {
+          'bert': BertModel,
+          'text_transformer': TextTransformer,
+      }[self.text_model]
+      text_model = model_class(
           **{
               'num_classes': out_dims[1],
               **(self.text or {})

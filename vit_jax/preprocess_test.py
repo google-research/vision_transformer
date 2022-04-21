@@ -14,6 +14,7 @@
 
 import contextlib
 import tempfile
+from unittest import mock
 
 from absl.testing import absltest
 import numpy as np
@@ -50,6 +51,33 @@ class PreprocessTest(absltest.TestCase):
         [1, 5, 0],
     ])
 
+  @mock.patch('tensorflow_text.SentencepieceTokenizer')
+  @mock.patch('tensorflow.io.gfile.GFile')
+  def test_sentencepiece_tokenizer(self, gfile_patch, tokenizer_patch):
+    gfile_patch.return_value.read.return_value = 'test vocab'
+    eos_token = 7
+    tokenizer_patch.return_value.string_to_id.return_value = eos_token
+    tokenizer_patch.return_value.tokenize.side_effect = (
+        tf.constant([1, eos_token], tf.int32),
+        tf.constant([2, 3, eos_token], tf.int32),
+        tf.constant([4, 5, 6, eos_token], tf.int32),
+    )
+
+    tokenizer = preprocess.SentencepieceTokenizer(
+        vocab_path='test_path', max_len=3)
+    gfile_patch.assert_called_once_with('test_path', 'rb')
+    tokenizer_patch.assert_called_once_with(model='test vocab', add_eos=True)
+    tokenizer_patch.return_value.string_to_id.assert_called_once_with('</s>')
+
+    tokens = tokenizer(['some', 'test', 'words'])
+    tokenizer_patch.return_value.tokenize.assert_has_calls(
+        (mock.call('some'), mock.call('test'), mock.call('words')))
+    np.testing.assert_equal(tokens, [
+        [1, eos_token, eos_token],
+        [2, 3, eos_token],
+        [4, 5, eos_token],
+    ])
+
   def test_preprocess_images(self):
     # white images with black border
     img1 = 255 * np.concatenate([  # portrait image
@@ -73,9 +101,10 @@ class PreprocessTest(absltest.TestCase):
     self.assertEqual(imgs.shape, (2, 4, 4, 3))
     self.assertEqual(imgs.mean(), 1.0)  # borders cropped
 
-  def test_pp(self):
+  def test_pp_bert(self):
     with _create_vocab() as vocab_path:
-      pp = preprocess.get_pp(vocab_path=vocab_path, max_len=3, size=4)
+      pp = preprocess.get_pp(
+          tokenizer_name='bert', vocab_path=vocab_path, max_len=3, size=4)
 
     ds = tf.data.Dataset.from_tensor_slices({
         'text':
@@ -94,6 +123,38 @@ class PreprocessTest(absltest.TestCase):
         'tokens': (np.int32, (2, 3))
     })
 
+  @mock.patch('tensorflow_text.SentencepieceTokenizer')
+  @mock.patch('tensorflow.io.gfile.GFile')
+  def test_pp_sentencepiece(self, gfile_patch, tokenizer_patch):
+    eos_token = 7
+    gfile_patch.return_value.read.return_value = 'test vocab'
+    tokenizer_patch.return_value.string_to_id.return_value = eos_token
+    tokenizer_patch.return_value.tokenize.side_effect = (
+        tf.constant([1, eos_token], tf.int32),
+        tf.constant([2, 3, eos_token], tf.int32),
+    )
+    pp = preprocess.get_pp(
+        tokenizer_name='sentencepiece',
+        vocab_path='test',
+        max_len=3,
+        size=4)
+
+    ds = tf.data.Dataset.from_tensor_slices({
+        'text':
+            tf.constant(['test', 'test']),
+        'image': [
+            tf.ones([10, 10, 3], tf.uint8),
+            tf.ones([10, 10, 3], tf.uint8)
+        ],
+    })
+
+    b = next(iter(ds.map(pp).batch(2).as_numpy_iterator()))
+    dtypes_shapes = {k: (v.dtype, v.shape) for k, v in b.items()}
+    np.testing.assert_equal(dtypes_shapes, {
+        'image': (np.float32, (2, 4, 4, 3)),
+        'text': (np.object, (2,)),
+        'tokens': (np.int32, (2, 3))
+    })
 
 if __name__ == '__main__':
   absltest.main()

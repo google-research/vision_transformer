@@ -20,6 +20,13 @@ import numpy as np
 import tensorflow as tf
 import tensorflow_text
 
+def get_tokenizer(tokenizer_name):
+  """Returns a tokenizer specified by name ("bert" or "sentencpiece")."""
+  return {
+      'bert': BertTokenizer,
+      'sentencepiece': SentencepieceTokenizer,
+  }[tokenizer_name]
+
 
 @dataclasses.dataclass(frozen=True)
 class BertTokenizer:
@@ -57,7 +64,7 @@ class BertTokenizer:
     object.__setattr__(self, '_tokenizer', tokenizer)
 
   def preprocess_tf(self, text):
-    """Tokenizes a single text as part of a TensorFlowg graph."""
+    """Tokenizes a single text as part of a TensorFlow graph."""
     return self._preprocess(text[None])[0]
 
   def _preprocess(self, texts):
@@ -70,6 +77,56 @@ class BertTokenizer:
   def __call__(self, texts):
     """Tokenizes a batch of texts to a numpy array."""
     return self._preprocess(tf.constant(texts)).numpy()
+
+
+@dataclasses.dataclass(frozen=True)
+class SentencepieceTokenizer:
+  """SentencePiece tokenizer with sticky eos.
+
+  Models that use this tokanizer usually use the *last* token, which is
+  guaranteed to be the "</s>" token (even if tokens are capped to `max_len`).
+  The same token is used for padding (and exposed as `eos_token`).
+
+  This class can be used to tokenize batches of text tokens to numpy arrays
+  (by calling `__call__()`), or as part of a TensorFlow preprocessing graph
+  (via the method `preprocess_tf()`).
+
+  Attributes:
+    vocab_path: Path pointing to the vocabulary file. Can be any path string
+      that is understood by `tf.io.gfile`.
+    max_len: Length of tokenized sequences. If the provided texts result in
+      fewer tokens, then the sequence is zero-padded. If the provided texts
+      result in more tokens, then the tokens are clipped.
+    eos_token: Token used for padding. Last token is guaranteed to be padded.
+  """
+
+  vocab_path: str
+  max_len: int
+  eos_token: int = dataclasses.field(init=False)
+
+  _tokenizer: tensorflow_text.BertTokenizer = dataclasses.field(init=False)
+
+  def __post_init__(self):
+    tokenizer = tensorflow_text.SentencepieceTokenizer(
+        model=tf.io.gfile.GFile(self.vocab_path, 'rb').read(), add_eos=True)
+    eos_token = tokenizer.string_to_id('</s>')
+
+    # Work-around for frozen dataclasses:
+    # https://stackoverflow.com/questions/53756788
+    object.__setattr__(self, 'eos_token', eos_token)
+    object.__setattr__(self, '_tokenizer', tokenizer)
+
+  def preprocess_tf(self, text):
+    """Tokenizes a single text as part of a TensorFlow graph."""
+    tokens = self._tokenizer.tokenize(text)
+    tokens = tokens[:self.max_len - 1]  # to guarantee eos at end
+    return tf.pad(
+        tokens, [(0, self.max_len - tf.shape(tokens)[0])],
+        constant_values=self.eos_token)
+
+  def __call__(self, texts):
+    """Tokenizes a batch of texts to a numpy array."""
+    return tf.stack([self.preprocess_tf(text) for text in texts]).numpy()
 
 
 @dataclasses.dataclass(frozen=True)
@@ -133,7 +190,7 @@ class PreprocessImages:
     ])
 
 
-def get_pp(*, vocab_path, max_len, size, crop=False):
+def get_pp(*, tokenizer_name, vocab_path, max_len, size, crop=False):
   """Returns preprocessing function for "image" and "text" features.
 
   The returned function can directly be used with `tf.data.Dataset.map()`.
@@ -144,12 +201,14 @@ def get_pp(*, vocab_path, max_len, size, crop=False):
   "text" feature is tokenized into a new feature "tokens".
 
   Args:
-    vocab_path: Argument passed to `BertTokenizer`.
-    max_len: Argument passed to `BertTokenizer`.
+    tokenizer_name: Name of tokenizer (either "bert", or "sentencepiece").
+    vocab_path: Argument passed to tokenizer.
+    max_len: Argument passed to tokenizer.
     size: Argument passed to `PreprocessImages`.
     crop: Argument passed to `PreprocessImages`.
   """
-  bert_tokenizer = BertTokenizer(vocab_path=vocab_path, max_len=max_len)
+  tokenizer_class = get_tokenizer(tokenizer_name)
+  tokenizer = tokenizer_class(vocab_path=vocab_path, max_len=max_len)
   preprocess_images = PreprocessImages(size=size, crop=crop)
 
   def pp(features):
@@ -157,7 +216,7 @@ def get_pp(*, vocab_path, max_len, size, crop=False):
     if 'image' in features:
       features['image'] = preprocess_images.preprocess_tf(features['image'])
     if 'text' in features:
-      features['tokens'] = bert_tokenizer.preprocess_tf(features['text'])
+      features['tokens'] = tokenizer.preprocess_tf(features['text'])
     return features
 
   return pp

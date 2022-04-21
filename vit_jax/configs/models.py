@@ -327,9 +327,11 @@ def get_lit_b16b_config():
   config.model_name = 'LiT-B16B'
   config.out_dim = (768, 768)
   config.image = get_b16_config()
+  config.text_model = 'bert'
   config.text = {}
   config.text.config = 'base'
   config.pp = {}
+  config.pp.tokenizer_name = 'bert'
   config.pp.size = 224
   config.pp.max_len = 16
   return config
@@ -342,9 +344,53 @@ def get_lit_l16l_config():
   config.model_name = 'LiT-L16L'
   config.out_dim = (None, 1024)
   config.image = get_l16_config()
+  config.text_model = 'bert'
   config.text = {}
   config.text.config = 'large'
   config.pp = {}
+  config.pp.tokenizer_name = 'bert'
+  config.pp.size = 224
+  config.pp.max_len = 16
+  return config
+
+
+@_register
+def get_lit_l16s_config():
+  """Returns a LiT model with ViT-Large and small text towers."""
+  config = ml_collections.ConfigDict()
+  config.model_name = 'LiT-L16S'
+  config.out_dim = (None, 1024)
+  config.image = get_l16_config()
+  config.text_model = 'text_transformer'
+  config.text = {}
+  config.text.width = 384
+  config.text.num_layers = 12
+  config.text.mlp_dim = 1536
+  config.text.num_heads = 6
+  config.text.vocab_size = 16_000
+  config.pp = {}
+  config.pp.tokenizer_name = 'sentencepiece'
+  config.pp.size = 224
+  config.pp.max_len = 16
+  return config
+
+
+@_register
+def get_lit_l16ti_config():
+  """Returns a LiT model with ViT-Large and tiny text towers."""
+  config = ml_collections.ConfigDict()
+  config.model_name = 'LiT-L16Ti'
+  config.out_dim = (None, 1024)
+  config.image = get_l16_config()
+  config.text_model = 'text_transformer'
+  config.text = {}
+  config.text.width = 192
+  config.text.num_layers = 12
+  config.text.mlp_dim = 768
+  config.text.num_heads = 3
+  config.text.vocab_size = 16_000
+  config.pp = {}
+  config.pp.tokenizer_name = 'sentencepiece'
   config.pp.size = 224
   config.pp.max_len = 16
   return config

@@ -25,6 +25,8 @@ from vit_jax.configs import models as config_lib
 MODEL_SIZES = {
     'LiT-B16B': 195_871_489,
     'LiT-L16L': 638_443_521,
+    'LiT-L16S': 331_140_353,
+    'LiT-L16Ti': 311_913_089.,
     'Mixer-B_16': 59_880_472,
     'Mixer-B_32': 60_293_428,
     'Mixer-L_16': 208_196_168,
