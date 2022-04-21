@@ -361,10 +361,13 @@ smallest models should even run on a modern cell phone):
 
 https://google-research.github.io/vision_transformer/lit/
 
-And finally a Colab to use the much larger JAX models with both image and text
-encoders:
+And finally a Colab to use the JAX models with both image and text encoders:
 
 https://colab.research.google.com/github/google-research/vision_transformer/blob/main/lit.ipynb
+
+Note that none of above models support multi-lingual inputs yet, but we're
+working on publishing such models and will update this repository once they
+become available.
 
 
 ## Running on cloud
@@ -527,4 +530,3 @@ Note: This repository was forked and modified from
 [google-research/big_transfer](https://github.com/google-research/big_transfer).
 
 **This is not an official Google product.**
-
