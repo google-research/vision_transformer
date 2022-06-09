@@ -1,5 +1,9 @@
 # Vision Transformer and MLP-Mixer Architectures
 
+**Update (9.6.2022)**: Added the ResNet, ViT, and MLP-Mixer checkpoints
+optimized using "Surrogate Gap Minimization Improves Sharpness-Aware Training"
+(a.k.a. GSAM) paper (Table 1).
+
 **Update (14.4.2022)**: Added models and Colab for [LiT models](#lit-models).
 
 **Update (2.7.2021)**: Added the "When Vision Transformers Outperform
@@ -19,6 +23,7 @@ In this repository we release models from the papers
 - [MLP-Mixer: An all-MLP Architecture for Vision](https://arxiv.org/abs/2105.01601)
 - [How to train your ViT? Data, Augmentation, and Regularization in Vision Transformers](https://arxiv.org/abs/2106.10270)
 - [When Vision Transformers Outperform ResNets without Pretraining or Strong Data Augmentations](https://arxiv.org/abs/2106.01548)
+- [Surrogate Gap Minimization Improves Sharpness-Aware Training](https://arxiv.org/abs/2203.08065)
 
 The models were pre-trained on the [ImageNet](http://www.image-net.org/) and
 [ImageNet-21k](http://www.image-net.org/) datasets. We provide the code for
@@ -173,6 +178,8 @@ Notes on memory:
 [`vit_jax.ipynb`]: https://colab.research.google.com/github/google-research/vision_transformer/blob/main/vit_jax.ipynb
 [`gs://vit_models/sam`]: https://console.cloud.google.com/storage/browser/vit_models/sam/
 [`gs://mixer_models/sam`]: https://console.cloud.google.com/storage/mixer_models/sam/
+[`gs://vit_models/gsam`]: https://console.cloud.google.com/storage/browser/vit_models/gsam/
+[`gs://mixer_models/gsam`]: https://console.cloud.google.com/storage/mixer_models/gsam/
 
 ## Vision Transformer
 
@@ -195,6 +202,14 @@ to the sequence.
 We provide models pre-trained on ImageNet-21k for the following architectures:
 ViT-B/16, ViT-B/32, ViT-L/16 and ViT-L/32. We  provide the same models
 pre-trained on ImageNet-21k *and* fine-tuned on ImageNet.
+
+**Update (9.6.2022)**: We added the ViT models trained from scratch using
+[GSAM](https://arxiv.org/abs/2203.08065) on ImageNet without strong data
+augmentations. The resultant ViTs outperform those of similar sizes trained
+using AdamW optimizer or the original [SAM](https://arxiv.org/abs/2010.01412)
+algorithm, or with strong data augmentations.
+To use those models, you can simply replace the model path
+in [`vit_jax.ipynb`] with [`gs://vit_models/gsam`].
 
 **Update (29.7.2021)**: Added ViT-B/8 AugReg models (3 upstream checkpoints and
 adaptations with resolution=224).
@@ -316,6 +331,13 @@ classifier head.
 For installation follow [the same steps](#installation) as above.
 
 ### Available Mixer models
+
+**Update (9.6.2022)**: We added the MLP-Mixer models
+([`gs://mixer_models/gsam`]) trained from scratch with
+[GSAM](https://arxiv.org/abs/2203.08065) on ImageNet without strong
+augmentations. The resultant MLP-Mixers outperform those of similar sizes
+trained with AdamW optimizer or with the original
+[SAM](https://arxiv.org/abs/2010.01412) algorithm.
 
 **Update (2.7.2021)**: We added the MLP-Mixer models trained with 
 [SAM](https://arxiv.org/abs/2010.01412) on ImageNet without strong 
@@ -511,6 +533,13 @@ And finally execute one of the commands mentioned in the section
   author={Chen, Xiangning and Hsieh, Cho-Jui and Gong, Boqing},
   journal={arXiv preprint arXiv:2106.01548},
   year={2021},
+}
+
+@article{zhuang2022gsam,
+  title={Surrogate Gap Minimization Improves Sharpness-Aware Training},
+  author={Zhuang, Juntang and Gong, Boqing and Yuan, Liangzhe and Cui, Yin and Adam, Hartwig and Dvornek, Nicha and Tatikonda, Sekhar and Duncan, James and Liu, Ting},
+  journal={ICLR},
+  year={2022},
 }
 
 @article{zhai2022lit,
