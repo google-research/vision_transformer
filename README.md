@@ -94,14 +94,20 @@ amount of data to fine-tune on. For details see the
 
 Make sure you have `Python>=3.6` installed on your machine.
 
-For installing [JAX](https://github.com/google/jax), follow the instructions
-provided in the corresponding repository linked here. Note that installation
-instructions for GPU differs slightly from the instructions for CPU.
-
-Then, install python dependencies by running:
+Install JAX and python dependencies by running:
 ```
+# If using GPU:
 pip install -r vit_jax/requirements.txt
+
+# If using TPU:
+pip install -r vit_jax/requirements-tpu.txt
 ```
+For newer versions of [JAX](https://github.com/google/jax), follow the instructions
+provided in the corresponding repository linked here. Note that installation
+instructions for CPU, GPU and TPU differs slightly.
+
+Install [Flaxformer](https://github.com/google/flaxformer), follow the instructions
+provided in the corresponding repository linked here.
 
 For more details refer to the section [Running on cloud](#running-on-cloud)
 below.
@@ -451,7 +457,7 @@ gcloud beta services identity create --service tpu.googleapis.com
 gcloud alpha compute tpus tpu-vm create $VM_NAME \
     --project=$PROJECT --zone=$ZONE \
     --accelerator-type v3-8 \
-    --version v2-alpha
+    --version tpu-vm-base
 
 # Connect to VM (after some minutes needed to setup & start the machine).
 gcloud alpha compute tpus tpu-vm ssh --project $PROJECT --zone $ZONE $VM_NAME
@@ -471,32 +477,32 @@ with TPU support) as usual:
 ```bash
 git clone --depth=1 --branch=master https://github.com/google-research/vision_transformer
 cd vision_transformer
+
+# optional: install virtualenv
 pip3 install virtualenv
 python3 -m virtualenv env
 . env/bin/activate
 ```
 
-If you're connected to a VM with GPUs attached, install JAX with the following
+If you're connected to a VM with GPUs attached, install JAX and other dependencies with the following
 command:
-
-```bash
-pip3 install --upgrade jax jaxlib \
-    -f https://storage.googleapis.com/jax-releases/jax_releases.html
-```
-
-If you're connected to a VM with TPUs attached, install JAX with the following
-command:
-
-```bash
-pip3 install --upgrade jax jaxlib
-```
-
-For both GPUs and TPUs, then proceed to install the remaining dependencies and
-check that accelerators can indeed show up in JAX:
 
 ```bash
 pip install -r vit_jax/requirements.txt
-# Check that JAX can connect to attached accelerators:
+```
+
+If you're connected to a VM with TPUs attached, install JAX and other dependencies with the following
+command:
+
+```bash
+pip install -r vit_jax/requirements-tpu.txt
+```
+
+Install [Flaxformer](https://github.com/google/flaxformer), follow the instructions
+provided in the corresponding repository linked here.
+
+For both GPUs and TPUs, Check that JAX can connect to attached accelerators with the command:
+```bash
 python -c 'import jax; print(jax.devices())'
 ```
 
