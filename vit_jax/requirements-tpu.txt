@@ -3,6 +3,7 @@ chex>=0.0.7
 clu>=0.0.3
 einops>=0.3.0
 flax>=0.4.1
+git+https://github.com/google/flaxformer
 
 jax[tpu]>=0.2.16
 --find-links https://storage.googleapis.com/jax-releases/libtpu_releases.html
@@ -12,3 +13,4 @@ numpy>=1.19.5
 pandas>=1.1.0
 tensorflow-datasets>=4.0.1
 tensorflow-probability>=0.11.1
+tensorflow-text>=2.9.0
