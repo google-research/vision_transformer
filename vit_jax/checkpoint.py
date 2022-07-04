@@ -17,7 +17,7 @@ import re
 
 from absl import logging
 import flax
-from  flax.training import checkpoints
+from flax.training import checkpoints
 import jax.numpy as jnp
 import numpy as np
 from packaging import version
@@ -143,13 +143,14 @@ def _fix_groupnorm(params):
 
   def fix_gn(args):
     path, array = args
-    if len(path) > 1 and regex.match(path[-2]) and path[-1] in ('bias', 'scale'):
+    if len(path) > 1 and regex.match(
+        path[-2]) and path[-1] in ('bias', 'scale'):
       array = array.squeeze()
     return (path, array)
 
-  return flax.traverse_util.unflatten_dict(dict(
-      map(fix_gn, flax.traverse_util.flatten_dict(params).items())
-  ))
+  return flax.traverse_util.unflatten_dict(
+      dict(map(fix_gn,
+               flax.traverse_util.flatten_dict(params).items())))
 
 
 def load_pretrained(*, pretrained_path, init_params, model_config):

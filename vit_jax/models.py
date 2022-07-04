@@ -17,6 +17,14 @@ from vit_jax import models_mixer
 from vit_jax import models_vit
 from vit_jax.configs import models as model_configs
 
+# Note that you probably want to import the individual modules separately
+# instead (e.g. not depending on tensorflow_text required by models_lit if
+# you're only interested in image models).
+AddPositionEmbs = models_vit.AddPositionEmbs
+MlpBlock = models_vit.MlpBlock
+Encoder1DBlock = models_vit.Encoder1DBlock
+Encoder = models_vit.Encoder
+
 LitModel = models_lit.LitModel
 MlpMixer = models_mixer.MlpMixer
 VisionTransformer = models_vit.VisionTransformer
