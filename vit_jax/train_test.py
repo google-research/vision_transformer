@@ -18,6 +18,7 @@ import tempfile
 from absl.testing import absltest
 from absl.testing import parameterized
 import ml_collections
+import tensorflow_datasets as tfds
 
 from vit_jax import test_utils
 from vit_jax import train
@@ -73,6 +74,7 @@ class TrainTest(parameterized.TestCase):
       test_utils.create_checkpoint(config.model, f'{workdir}/testing.npz')
 
       _ = train.train_and_evaluate(config, workdir)
+      # _ = train.train_and_evaluate(config, workdir)
       self.assertTrue(os.path.exists(f'{workdir}/checkpoint_1'))
 
 
