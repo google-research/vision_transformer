@@ -2,14 +2,14 @@ absl-py>=0.12.0
 chex>=0.0.7
 clu>=0.0.3
 einops>=0.3.0
-flax==0.4.1
+flax>=0.4.1
 git+https://github.com/google/flaxformer
 
-jax==0.3.4
+jax>=0.3.4
 --find-links https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
-jaxlib==0.3.2+cuda11.cudnn82  # Make sure CUDA version matches the base image.
+jaxlib>=0.3.2+cuda11.cudnn82  # Make sure CUDA version matches the base image.
 
-ml-collections==0.1.0
+ml-collections>=0.1.0
 numpy>=1.19.5
 pandas>=1.1.0
 tensorflow-cpu>=2.4.0  # Using tensorflow-cpu to have all GPU memory for JAX.
