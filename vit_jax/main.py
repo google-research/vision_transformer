@@ -24,7 +24,6 @@ from vit_jax import inference_time
 from vit_jax import train
 from vit_jax import utils
 
-
 FLAGS = flags.FLAGS
 
 _WORKDIR = flags.DEFINE_string('workdir', None,
@@ -71,6 +70,7 @@ def main(argv):
     inference_time.inference_time(FLAGS.config, _WORKDIR.value)
   else:
     raise app.UsageError(f'Unknown trainer: {FLAGS.config.trainer}')
+
 
 if __name__ == '__main__':
   # Provide access to --jax_backend_target and --jax_xla_backend flags.

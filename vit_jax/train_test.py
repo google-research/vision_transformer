@@ -72,7 +72,7 @@ class TrainTest(parameterized.TestCase):
       config.pretrained_dir = workdir
       test_utils.create_checkpoint(config.model, f'{workdir}/testing.npz')
 
-      opt_pmap = train.train_and_evaluate(config, workdir)
+      _ = train.train_and_evaluate(config, workdir)
       self.assertTrue(os.path.exists(f'{workdir}/checkpoint_1'))
 
 
