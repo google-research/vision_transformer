@@ -174,7 +174,7 @@ def train_and_evaluate(config: ml_collections.ConfigDict, workdir: str):
       range(initial_step, total_steps + 1),
       input_pipeline.prefetch(ds_train, config.prefetch)):
 
-    with jax.profiler.StepTraceContext('train', step_num=step):
+    with jax.profiler.StepTraceAnnotation('train', step_num=step):
       opt_repl, loss_repl, update_rng_repl = update_fn_repl(
           opt_repl, flax.jax_utils.replicate(step), batch, update_rng_repl)
 
