@@ -111,7 +111,7 @@ def accumulate_gradient(loss_and_grad_fn, params, images, labels, accum_steps):
                                    (step_size, labels.shape[1]))
       li, gi = loss_and_grad_fn(params, imgs, lbls)
       l, g = l_and_g
-      return (l + li, jax.tree_multimap(lambda x, y: x + y, g, gi))
+      return (l + li, jax.tree_map(lambda x, y: x + y, g, gi))
 
     l, g = jax.lax.fori_loop(1, accum_steps, acc_grad_and_loss, (l, g))
     return jax.tree_map(lambda x: x / accum_steps, (l, g))
