@@ -231,7 +231,7 @@ def get_s32_gap_norep_config():
 
 @_register
 def get_b32_gap_norep_config():
-  """Returns ViT-B/16 with classifier=gap, representation=None."""
+  """Returns ViT-B/32 with classifier=gap, representation=None."""
   config = get_b32_config()
   config.model_name = 'ViT-B_32-gap-norep'
   config.classifier = 'gap'
