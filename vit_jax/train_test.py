@@ -49,7 +49,6 @@ class TrainTest(parameterized.TestCase):
     config.total_steps = 1
 
     with tempfile.TemporaryDirectory() as workdir:
-
       if dataset_source == 'tfds':
         config.dataset = 'cifar10'
         config.pp = ml_collections.ConfigDict({
