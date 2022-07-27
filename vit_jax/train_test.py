@@ -73,7 +73,6 @@ class TrainTest(parameterized.TestCase):
       test_utils.create_checkpoint(config.model, f'{workdir}/testing.npz')
 
       _ = train.train_and_evaluate(config, workdir)
-      # _ = train.train_and_evaluate(config, workdir)
       self.assertTrue(os.path.exists(f'{workdir}/checkpoint_1'))
 
 
