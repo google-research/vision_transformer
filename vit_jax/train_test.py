@@ -14,6 +14,7 @@
 
 import os
 import tempfile
+import time
 
 from absl.testing import absltest
 from absl.testing import parameterized
@@ -41,6 +42,7 @@ class TrainTest(parameterized.TestCase):
       ('directory', 'directory'),
   )
   def test_train_and_evaluate(self, dataset_source):
+    t0 = time.monotonic()
     config = common.get_config()
     config.model = models.get_testing_config()
     config.batch = 64
@@ -74,6 +76,8 @@ class TrainTest(parameterized.TestCase):
 
       _ = train.train_and_evaluate(config, workdir)
       self.assertTrue(os.path.exists(f'{workdir}/checkpoint_1'))
+
+    self.assertEqual(time.monotonic() - t0, 0)
 
 
 if __name__ == '__main__':
