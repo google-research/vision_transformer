@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import flax
+import flax.optim
 import jax
 import jax.numpy as jnp
 import numpy as np
