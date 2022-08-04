@@ -153,6 +153,26 @@ def get_h14_config():
   return config
 
 
+@_register
+def get_s16_gap_norep_config():
+  """Returns ViT-S/16 with classifier=gap, representation=None."""
+  config = get_s16_config()
+  config.model_name = 'ViT-S_16-gap-norep'
+  config.classifier = 'gap'
+  config.representation_size = None
+  return config
+
+
+@_register
+def get_b16_gap_norep_config():
+  """Returns ViT-B/16 with classifier=gap, representation=None."""
+  config = get_b16_config()
+  config.model_name = 'ViT-B_16-gap-norep'
+  config.classifier = 'gap'
+  config.representation_size = None
+  return config
+
+
 # ViT-X/8
 #########
 
@@ -195,6 +215,27 @@ def get_l32_config():
   config.transformer.dropout_rate = 0.0
   config.model_name = 'ViT-L_32'
   config.patches.size = (32, 32)
+  return config
+
+
+
+@_register
+def get_s32_gap_norep_config():
+  """Returns ViT-S/32 with classifier=gap, representation=None."""
+  config = get_s32_config()
+  config.model_name = 'ViT-S_32-gap-norep'
+  config.classifier = 'gap'
+  config.representation_size = None
+  return config
+
+
+@_register
+def get_b32_gap_norep_config():
+  """Returns ViT-B/32 with classifier=gap, representation=None."""
+  config = get_b32_config()
+  config.model_name = 'ViT-B_32-gap-norep'
+  config.classifier = 'gap'
+  config.representation_size = None
   return config
 
 
