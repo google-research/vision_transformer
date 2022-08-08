@@ -283,6 +283,8 @@ class VisionTransformer(nn.Module):
       x = x[:, 0]
     elif self.classifier == 'gap':
       x = jnp.mean(x, axis=list(range(1, x.ndim - 1)))  # (1,) or (1,2)
+    elif self.classifier == 'unpooled':
+      pass
     else:
       raise ValueError(f'Invalid classifier={self.classifier}')
 

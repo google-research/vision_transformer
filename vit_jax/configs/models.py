@@ -59,6 +59,16 @@ def get_testing_config():
   return config
 
 
+@_register
+def get_testing_unpooled_config():
+  """Returns a simple config used for testing unpooled version."""
+  config = get_testing_config()
+  # Only used for testing.
+  config.model_name = 'testing-unpooled'
+  config.classifier = 'unpooled'
+  return config
+
+
 # ViT-X/16 & ViT-H/14
 #####################
 

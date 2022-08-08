@@ -49,6 +49,7 @@ MODEL_SIZES = {
     'ViT-S_32-gap-norep': 22_878_184,
     'ViT-Ti_16': 5_717_416,
     'testing': 21_390,
+    'testing-unpooled': 21_370,
 }
 
 
@@ -73,7 +74,10 @@ class ModelsTest(parameterized.TestCase):
     else:
       variables = model.init(rng, images, train=False)
       outputs = model.apply(variables, images, train=False)
-      self.assertEqual((2, 1000), outputs.shape)
+      if 'unpooled' in name:
+        self.assertEqual((2, 196, 1000), outputs.shape)
+      else:
+        self.assertEqual((2, 1000), outputs.shape)
     param_count = sum(p.size for p in jax.tree_flatten(variables)[0])
     self.assertEqual(
         size, param_count,
