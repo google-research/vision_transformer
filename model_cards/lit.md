@@ -16,7 +16,7 @@ and compute similarities between embeddings of text/image pairs. This enables
 use cases like zero shot classification, or image/text retrieval.
 
 Note that this model card refers to the models that have been released on
-Github specifically (B16B, L16L). The [LiT Paper] also evaluates models that
+Github specifically (B16B_2, L16L). The [LiT Paper] also evaluates models that
 have not been released and use different datasets for training. The Colab
 [`lit.ipynb`] lists some more models (L16S, L16Ti) which are similar to L16L,
 but with a smaller text tower.
@@ -80,10 +80,10 @@ The model has been initialized from BERT & ViT checkpoints (see details above
 All datasets have been released in previous publications independent from this
 model. The datasets and model are not regularly updated.
 
-The published B16B and L16L models are medium sized and can be used on a normal
+The published B16B_2 and L16L models are medium sized and can be used on a normal
 computer, or on a single GPU/TPU.
 
-| Model | B16B | L16L |
+| Model | B16B_2 | L16L |
 | :--- | ---: | ---: |
 | Size | 474 MB | 2.4 GB |
 | Weights | 196M | 638M |
@@ -102,17 +102,17 @@ Software/hardware used for deployment:
 
 Compute requirements for training:
 
-| Model | B16B | L16L |
+| Model | B16B_2 | L16L |
 | :--- | ---: | ---: |
 | Number of Chips	| 64 | 64 |
-| Training Time (days) | 0.125 | 1 |
-| Total Computation (FLOPS) | 1.5E+19 | 9E+19 |
+| Training Time (days) | 0.3 | 1 |
+| Total Computation (FLOPS) | 2.7E+19 | 9E+19 |
 | Measured Performance (TFLOPS/s) | 1153 | 1614 |
-| Energy Consumption (MWh) | 0.07 | 0.16 |
+| Energy Consumption (MWh) | 0.14 | 0.16 |
 
 Compute requirements for inference:
 
-| Model | B16B | L16L |
+| Model | B16B_2 | L16L |
 | :--- | ---: | ---: |
 | FLOPS/example | approx. 10 | approx. 30 |
 
@@ -130,15 +130,15 @@ Benchmark information:
 
 Evaluation results:
 
-| Model | B16B | L16L |
+| Model | B16B_2 | L16L |
 | :--- | ---: | ---: |
-| ImageNet zero-shot | 72.1% | 75.7% |
-| ImageNet v2 zero-shot | 63.5% | 66.6% |
-| CIFAR100 zero-shot | 79.7% | 80.5% |
-| Pets37 zero-shot | 81.1% | 83.3% |
-| Resisc45 zero-shot | 26.7% | 25.6% |
-| MS-COCO Captions image-to-text retrieval | 49.3% | 48.5% |
-| MS-COCO Captions text-to-image retrieval | 31.2% | 31.1% |
+| ImageNet zero-shot | 73.9% | 75.7% |
+| ImageNet v2 zero-shot | 65.1% | 66.6% |
+| CIFAR100 zero-shot | 79.0% | 80.5% |
+| Pets37 zero-shot | 83.3% | 83.3% |
+| Resisc45 zero-shot | 25.3% | 25.6% |
+| MS-COCO Captions image-to-text retrieval | 51.6% | 48.5% |
+| MS-COCO Captions text-to-image retrieval | 31.8% | 31.1% |
 
 ## Limitations
 
@@ -217,3 +217,9 @@ are to be computed between image and text embeddings (e.g. for computing output
 distributions), then the similarities between the embeddings should be computed
 with the dot product, and these should then be multiplied by the temperature
 before a softmax is applied.
+
+## Changelog
+
+- 2022-08-16: Replaced model B16B with an updated version B16B_2 that was
+  trained for 60k steps (before: 30k) without linear head on the image side
+  (before: 768) and has better performance.

@@ -389,6 +389,15 @@ def get_lit_b16b_config():
 
 
 @_register
+def get_lit_b16b_2_config():
+  """Returns an improved LiT model with ViT-Base and BERT-Base towers."""
+  config = get_lit_b16b_config()
+  config.model_name = 'LiT-B16B_2'
+  config.out_dim = (None, 768)
+  return config
+
+
+@_register
 def get_lit_l16l_config():
   """Returns a LiT model with ViT-Large and BERT-Large towers."""
   config = ml_collections.ConfigDict()

@@ -1,22 +1,5 @@
 # Vision Transformer and MLP-Mixer Architectures
 
-**Update (9.6.2022)**: Added the ResNet, ViT, and MLP-Mixer checkpoints
-optimized using "Surrogate Gap Minimization Improves Sharpness-Aware Training"
-(a.k.a. GSAM) paper (Table 1).
-
-**Update (14.4.2022)**: Added models and Colab for [LiT models](#lit-models).
-
-**Update (2.7.2021)**: Added the "When Vision Transformers Outperform
-ResNets..." paper, and [SAM](https://arxiv.org/abs/2010.01412)
-(Sharpness-Aware Minimization) optimized ViT and MLP-Mixer checkpoints.
-
-**Update (20.6.2021)**: Added the "How to train your ViT? ..." paper, and a new
-Colab to explore the >50k pre-trained and fine-tuned checkpoints mentioned in
-the paper.
-
-**Update (18.6.2021)**: This repository was rewritten to use Flax Linen API and
-`ml_collections.ConfigDict` for configuration.
-
 In this repository we release models from the papers
 
 - [An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale](https://arxiv.org/abs/2010.11929)
@@ -49,6 +32,7 @@ Table of contents:
 		- [Setup VM](#setup-vm)
 	- [Bibtex](#bibtex)
 	- [Disclaimers](#disclaimers)
+	- [Changelog](#changelog)
 
 
 ## Colab
@@ -96,6 +80,7 @@ amount of data to fine-tune on. For details see the
 Make sure you have `Python>=3.6` installed on your machine.
 
 Install JAX and python dependencies by running:
+
 ```
 # If using GPU:
 pip install -r vit_jax/requirements.txt
@@ -103,6 +88,7 @@ pip install -r vit_jax/requirements.txt
 # If using TPU:
 pip install -r vit_jax/requirements-tpu.txt
 ```
+
 For newer versions of [JAX](https://github.com/google/jax), follow the instructions
 provided in the corresponding repository linked here. Note that installation
 instructions for CPU, GPU and TPU differs slightly.
@@ -178,16 +164,6 @@ Notes on memory:
   `--config.shuffle_buffer=50000`.
 
 
-[`configs/augreg.py`]: https://github.com/google-research/vision_transformer/blob/main/vit_jax/configs/augreg.py
-[`configs/model.py`]: https://github.com/google-research/vision_transformer/blob/main/vit_jax/configs/models.py
-[`vit_jax_augreg.ipynb`]: https://colab.research.google.com/github/google-research/vision_transformer/blob/main/vit_jax_augreg.ipynb
-[`gs://vit_models/augreg`]: https://console.cloud.google.com/storage/browser/vit_models/augreg/
-[`vit_jax.ipynb`]: https://colab.research.google.com/github/google-research/vision_transformer/blob/main/vit_jax.ipynb
-[`gs://vit_models/sam`]: https://console.cloud.google.com/storage/browser/vit_models/sam/
-[`gs://mixer_models/sam`]: https://console.cloud.google.com/storage/mixer_models/sam/
-[`gs://vit_models/gsam`]: https://console.cloud.google.com/storage/browser/vit_models/gsam/
-[`gs://mixer_models/gsam`]: https://console.cloud.google.com/storage/mixer_models/gsam/
-
 ## Vision Transformer
 
 by Alexey Dosovitskiy\*†, Lucas Beyer\*, Alexander Kolesnikov\*, Dirk
@@ -206,37 +182,26 @@ to the sequence.
 
 ### Available ViT models
 
-We provide models pre-trained on ImageNet-21k for the following architectures:
-ViT-B/16, ViT-B/32, ViT-L/16 and ViT-L/32. We  provide the same models
-pre-trained on ImageNet-21k *and* fine-tuned on ImageNet.
+We provide a variety of ViT models in different GCS buckets. The models can be
+downloaded with e.g.:
 
-**Update (9.6.2022)**: We added the ViT models trained from scratch using
-[GSAM](https://arxiv.org/abs/2203.08065) on ImageNet without strong data
-augmentations. The resultant ViTs outperform those of similar sizes trained
-using AdamW optimizer or the original [SAM](https://arxiv.org/abs/2010.01412)
-algorithm, or with strong data augmentations.
-To use those models, you can simply replace the model path
-in [`vit_jax.ipynb`] with [`gs://vit_models/gsam`].
+```
+wget https://storage.googleapis.com/vit_models/imagenet21k/ViT-B_16.npz
+```
 
-**Update (29.7.2021)**: Added ViT-B/8 AugReg models (3 upstream checkpoints and
-adaptations with resolution=224).
+The model filenames (without the `.npz` extension) correspond to the
+`config.model_name` in [`vit_jax/configs/models.py`]
 
-**Update (2.7.2021)**: We added the ViT models trained from scratch with 
-[SAM](https://arxiv.org/abs/2010.01412) optimizer on ImageNet 
-(with basic Inception-style preprocessing). The resultant ViTs outperform 
-ResNets of similar size and throughput without large-scale pre-training or 
-strong data augmentations. They also possess more perceptive attention maps. 
-To use those models, you can simply replace the model path 
-in [`vit_jax.ipynb`] with [`gs://vit_models/sam`].
+- [`gs://vit_models/imagenet21k`] - Models pre-trained on ImageNet-21k.
+- [`gs://vit_models/imagenet21k+imagenet2012`] - Models pre-trained on
+  ImageNet-21k and fine-tuned on ImageNet.
+- [`gs://vit_models/imagenet21k/augreg`] - Models pre-trained on ImageNet-21k,
+  applying varying amounts of [AugReg]. Improved performance.
+- [`gs://vit_models/sam`] - Models pre-trained on ImageNet with [SAM].
+- [`gs://vit_models/gsam`] - Models pre-trained on ImageNet with [GSAM].
 
-**Update (19.5.2021)**: With publication of the "How to train your ViT? ..."
-paper, we added more than 50k ViT and hybrid models pre-trained on ImageNet and
-ImageNet-21k with various degrees of data augmentation and model regularization,
-and fine-tuned on ImageNet, Pets37, Kitti-distance, CIFAR-100, and Resisc45.
-Check out [`vit_jax_augreg.ipynb`] to navigate this treasure trove of models!
-For example, you can use that Colab to fetch the filenames of recommended
-pre-trained and fine-tuned checkpoints from the `i21k_300` column of Table 3 in
-the paper:
+We recommend using the following checkpoints, trained with [AugReg] that have
+the best pre-training metrics:
 
 |  Model   |                                   Pre-trained checkpoint                                   |   Size   |                                                       Fine-tuned checkpoint                                                        | Resolution | Img/sec | Imagenet accuracy |
 | :------- | :----------------------------------------------------------------------------------------- | -------: | :--------------------------------------------------------------------------------------------------------------------------------- | ---------: | ------: | ----------------: |
@@ -250,43 +215,8 @@ the paper:
 | S/32     | `gs://vit_models/augreg/S_32-i21k-300ep-lr_0.001-aug_none-wd_0.1-do_0.0-sd_0.0.npz`        |  118 MiB | `gs://vit_models/augreg/S_32-i21k-300ep-lr_0.001-aug_none-wd_0.1-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.01-res_384.npz`        |        384 |    2154 |            79.58% |
 | R+Ti/16  | `gs://vit_models/augreg/R_Ti_16-i21k-300ep-lr_0.001-aug_none-wd_0.03-do_0.0-sd_0.0.npz`    |   40 MiB | `gs://vit_models/augreg/R_Ti_16-i21k-300ep-lr_0.001-aug_none-wd_0.03-do_0.0-sd_0.0--imagenet2012-steps_20k-lr_0.03-res_384.npz`    |        384 |    2426 |            75.40% |
 
-**Update (1.12.2020)**: We have added the R50+ViT-B/16 hybrid model (ViT-B/16 on
-top of a Resnet-50 backbone). When pretrained on imagenet21k, this model
-achieves almost the performance of the L/16 model with less than half the
-computational finetuning cost. Note that "R50" is somewhat modified for the B/16
-variant: The original ResNet-50 has [3,4,6,3] blocks, each reducing the
-resolution of the image by a factor of two. In combination with the ResNet stem
-this would result in a reduction of 32x so even with a patch size of (1,1) the
-ViT-B/16 variant cannot be realized anymore. For this reason we instead use
-[3,4,9] blocks for the R50+B/16 variant.
-
-**Update (9.11.2020)**: We have also added the ViT-L/16 model.
-
-**Update (29.10.2020)**: We have added ViT-B/16 and ViT-L/16 models pretrained
-on ImageNet-21k and then fine-tuned on ImageNet at 224x224 resolution (instead
-of default 384x384). These models have the suffix "-224" in their name.
-They are expected to achieve 81.2% and 82.7% top-1 accuracies respectively.
-
-You can find all these models in the following storage bucket:
-
-https://console.cloud.google.com/storage/browser/vit_models/
-
-For example, if you would like to download the ViT-B/16 pre-trained on
-imagenet21k run the following command:
-
-```
-wget https://storage.googleapis.com/vit_models/imagenet21k/ViT-B_16.npz
-```
-
-### Expected ViT results
-
-Table below runs experiments both with `transformer.dropout_rate=0.1` (as in the
-ViT paper), and with `transformer.dropout_rate=0.0`, which improves results
-somewhat for models B=16, B/32, and L/32. The better setting was chosen for the
-default config of the models in this repository. Note also that all these models
-have `representation_size=None`, i.e. the last layer before the classification
-layer is dropped for fine-tuning.
-
+The results from the original ViT paper (https://arxiv.org/abs/2010.11929) have
+been replicated using the models from [`gs://vit_models/imagenet21k`]:
 
 | model        | dataset      | dropout=0.0                                                                                                                                                         | dropout=0.1                                                                                                                                                          |
 |:-------------|:-------------|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -339,20 +269,6 @@ For installation follow [the same steps](#installation) as above.
 
 ### Available Mixer models
 
-**Update (9.6.2022)**: We added the MLP-Mixer models
-([`gs://mixer_models/gsam`]) trained from scratch with
-[GSAM](https://arxiv.org/abs/2203.08065) on ImageNet without strong
-augmentations. The resultant MLP-Mixers outperform those of similar sizes
-trained with AdamW optimizer or with the original
-[SAM](https://arxiv.org/abs/2010.01412) algorithm.
-
-**Update (2.7.2021)**: We added the MLP-Mixer models trained with 
-[SAM](https://arxiv.org/abs/2010.01412) on ImageNet without strong 
-augmentations ([`gs://mixer_models/sam`]). The loss landscapes become 
-much smoother, and we found that the activated neurons for the 
-first few layers decrease dramatically after SAM, 
-indicating the potential redundency of image patches.
-
 We provide the Mixer-B/16 and Mixer-L/16 models pre-trained on the ImageNet and
 ImageNet-21k datasets. Details can be found in Table 3 of the Mixer paper. All
 the models can be found at:
@@ -398,6 +314,18 @@ Note that none of above models support multi-lingual inputs yet, but we're
 working on publishing such models and will update this repository once they
 become available.
 
+Expected zeroshot results from [`model_cards/lit.md`] (note that the zeroshot
+evaluation is slightly different from the simplified evaluation in the Colab):
+
+| Model | B16B_2 | L16L |
+| :--- | ---: | ---: |
+| ImageNet zero-shot | 73.9% | 75.7% |
+| ImageNet v2 zero-shot | 65.1% | 66.6% |
+| CIFAR100 zero-shot | 79.0% | 80.5% |
+| Pets37 zero-shot | 83.3% | 83.3% |
+| Resisc45 zero-shot | 25.3% | 25.6% |
+| MS-COCO Captions image-to-text retrieval | 51.6% | 48.5% |
+| MS-COCO Captions text-to-image retrieval | 31.8% | 31.1% |
 
 ## Running on cloud
 
@@ -558,6 +486,64 @@ And finally execute one of the commands mentioned in the section
 ```
 
 
+## Changelog
+
+In reverse chronological order:
+
+- 2022-08-18: Added LiT-B16B_2 model that was trained for 60k steps
+  (LiT_B16B: 30k) without linear head on the image side (LiT_B16B: 768) and has
+  better performance.
+
+- 2022-06-09: Added the ViT and Mixer models trained from scratch using
+  [GSAM] on ImageNet without strong data augmentations. The resultant ViTs
+  outperform those of similar sizes trained using AdamW optimizer or the
+  original [SAM] algorithm, or with strong data augmentations.
+
+- 2022-04-14: Added models and Colab for [LiT models](#lit-models).
+
+- 2021-07-29: Added ViT-B/8 AugReg models (3 upstream checkpoints and adaptations
+  with resolution=224).
+
+- 2021-07-02: Added the "When Vision Transformers Outperform
+  ResNets..." paper
+  
+- 2021-07-02: Added [SAM](https://arxiv.org/abs/2010.01412)
+  (Sharpness-Aware Minimization) optimized ViT and MLP-Mixer checkpoints.
+
+- 2021-06-20: Added the "How to train your ViT? ..." paper, and a new
+  Colab to explore the >50k pre-trained and fine-tuned checkpoints mentioned in
+  the paper.
+
+- 2021-06-18: This repository was rewritten to use Flax Linen API and
+  `ml_collections.ConfigDict` for configuration.
+
+- 2021-05-19: With publication of the "How to train your ViT? ..."
+  paper, we added more than 50k ViT and hybrid models pre-trained on ImageNet and
+  ImageNet-21k with various degrees of data augmentation and model regularization,
+  and fine-tuned on ImageNet, Pets37, Kitti-distance, CIFAR-100, and Resisc45.
+  Check out [`vit_jax_augreg.ipynb`] to navigate this treasure trove of models!
+  For example, you can use that Colab to fetch the filenames of recommended
+  pre-trained and fine-tuned checkpoints from the `i21k_300` column of Table 3 in
+  the paper.
+
+- 2020-12-01: Added the R50+ViT-B/16 hybrid model (ViT-B/16 on
+  top of a Resnet-50 backbone). When pretrained on imagenet21k, this model
+  achieves almost the performance of the L/16 model with less than half the
+  computational finetuning cost. Note that "R50" is somewhat modified for the
+  B/16 variant: The original ResNet-50 has [3,4,6,3] blocks, each reducing the
+  resolution of the image by a factor of two. In combination with the ResNet
+  stem this would result in a reduction of 32x so even with a patch size of
+  (1,1) the ViT-B/16 variant cannot be realized anymore. For this reason we
+  instead use [3,4,9] blocks for the R50+B/16 variant.
+
+- 2020-11-09: Added the ViT-L/16 model.
+
+- 2020-10-29: Added ViT-B/16 and ViT-L/16 models pretrained
+  on ImageNet-21k and then fine-tuned on ImageNet at 224x224 resolution (instead
+  of default 384x384). These models have the suffix "-224" in their name.
+  They are expected to achieve 81.2% and 82.7% top-1 accuracies respectively.
+
+
 ## Disclaimers
 
 Open source release prepared by Andreas Steiner.
@@ -566,3 +552,24 @@ Note: This repository was forked and modified from
 [google-research/big_transfer](https://github.com/google-research/big_transfer).
 
 **This is not an official Google product.**
+
+
+[GSAM]: https://arxiv.org/abs/2203.08065
+[SAM]: https://arxiv.org/abs/2010.01412
+[AugReg]: https://arxiv.org/abs/2106.10270
+
+[`vit_jax/configs/models.py`]: https://github.com/google-research/vision_transformer/blob/main/vit_jax/configs/models.py
+[`model_cards/lit.md`]: https://github.com/google-research/vision_transformer/blob/main/model_cards/lit.md
+
+[`configs/augreg.py`]: https://github.com/google-research/vision_transformer/blob/main/vit_jax/configs/augreg.py
+[`configs/model.py`]: https://github.com/google-research/vision_transformer/blob/main/vit_jax/configs/models.py
+[`vit_jax_augreg.ipynb`]: https://colab.research.google.com/github/google-research/vision_transformer/blob/main/vit_jax_augreg.ipynb
+[`vit_jax.ipynb`]: https://colab.research.google.com/github/google-research/vision_transformer/blob/main/vit_jax.ipynb
+
+[`gs://vit_models/imagenet21k`]: https://console.cloud.google.com/storage/browser/vit_models/imagenet21k/
+[`gs://vit_models/imagenet21k+imagenet2012`]: https://console.cloud.google.com/storage/browser/vit_models/imagenet21k+imagenet2012/
+[`gs://vit_models/augreg`]: https://console.cloud.google.com/storage/browser/vit_models/augreg/
+[`gs://vit_models/sam`]: https://console.cloud.google.com/storage/browser/vit_models/sam/
+[`gs://mixer_models/sam`]: https://console.cloud.google.com/storage/mixer_models/sam/
+[`gs://vit_models/gsam`]: https://console.cloud.google.com/storage/browser/vit_models/gsam/
+[`gs://mixer_models/gsam`]: https://console.cloud.google.com/storage/mixer_models/gsam/
