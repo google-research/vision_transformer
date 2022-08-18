@@ -31,7 +31,7 @@ install_requires = [
     'einops',
     'flax',
     'flaxformer @ git+https://github.com/google/flaxformer',
-    'jax',
+    'jax<=0.3.15',  # flaxformer fails at 0.3.16 due to missing jax.interpreters.masked
     'ml-collections',
     'numpy',
     'packaging',
