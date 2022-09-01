@@ -29,9 +29,9 @@ install_requires = [
     'absl-py',
     'clu',
     'einops',
-    'flax',
+    'flax==0.5.3',  # requires deprecated flax.optim 😱
     'flaxformer @ git+https://github.com/google/flaxformer',
-    'jax<=0.3.15',  # flaxformer fails at 0.3.16 due to missing jax.interpreters.masked
+    'jax',
     'ml-collections',
     'numpy',
     'packaging',
