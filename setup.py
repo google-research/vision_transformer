@@ -77,4 +77,3 @@ setup(
     tests_require=tests_require,
     extras_require=dict(test=tests_require),
     )
-
