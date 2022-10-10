@@ -23,7 +23,7 @@ import jax.numpy as jnp
 import numpy as np
 from packaging import version
 import pandas as pd
-import scipy
+import scipy.ndimage
 from tensorflow.io import gfile  # pylint: disable=import-error
 import tqdm
 
