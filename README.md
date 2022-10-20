@@ -1,5 +1,10 @@
 # Vision Transformer and MLP-Mixer Architectures
 
+<p>
+<a href="https://console.tiyaro.ai/explore?q=google/vit-base-patch16-&pub=google"> <img src="https://tiyaro-public-docs.s3.us-west-2.amazonaws.com/assets/try_on_tiyaro_badge.svg"></a>
+</p>
+
+
 In this repository we release models from the papers
 
 - [An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale](https://arxiv.org/abs/2010.11929)
