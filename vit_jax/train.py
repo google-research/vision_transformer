@@ -25,19 +25,19 @@ import jax
 import jax.numpy as jnp
 import ml_collections
 import numpy as np
+import optax
 import tensorflow as tf
 
 from vit_jax import checkpoint
 from vit_jax import input_pipeline
 from vit_jax import models
-from vit_jax import momentum_clip
 from vit_jax import utils
 
 
-def make_update_fn(*, apply_fn, accum_steps, lr_fn):
+def make_update_fn(*, apply_fn, accum_steps, tx):
   """Returns update step for data parallel training."""
 
-  def update_fn(opt, step, batch, rng):
+  def update_fn(params, opt_state, batch, rng):
 
     _, new_rng = jax.random.split(rng)
     # Bind the rng key to the device id (which is unique across hosts)
@@ -58,13 +58,14 @@ def make_update_fn(*, apply_fn, accum_steps, lr_fn):
       return cross_entropy_loss(logits=logits, labels=labels)
 
     l, g = utils.accumulate_gradient(
-        jax.value_and_grad(loss_fn), opt.target, batch['image'], batch['label'],
+        jax.value_and_grad(loss_fn), params, batch['image'], batch['label'],
         accum_steps)
     g = jax.tree_map(lambda x: jax.lax.pmean(x, axis_name='batch'), g)
+    updates, opt_state = tx.update(g, opt_state)
+    params = optax.apply_updates(params, updates)
     l = jax.lax.pmean(l, axis_name='batch')
 
-    opt = opt.apply_gradient(g, learning_rate=lr_fn(step))
-    return opt, l, new_rng
+    return params, opt_state, l, new_rng
 
   return jax.pmap(update_fn, axis_name='batch', donate_argnums=(0,))
 
@@ -130,28 +131,33 @@ def train_and_evaluate(config: ml_collections.ConfigDict, workdir: str):
       model_config=config.model)
 
   total_steps = config.total_steps
+
   lr_fn = utils.create_learning_rate_schedule(total_steps, config.base_lr,
                                               config.decay_type,
                                               config.warmup_steps)
+  tx = optax.chain(
+      optax.clip_by_global_norm(config.grad_norm_clip),
+      optax.sgd(
+          learning_rate=lr_fn,
+          momentum=0.9,
+          accumulator_dtype='bfloat16',
+      ),
+  )
 
   update_fn_repl = make_update_fn(
-      apply_fn=model.apply, accum_steps=config.accum_steps, lr_fn=lr_fn)
+      apply_fn=model.apply, accum_steps=config.accum_steps, tx=tx)
   infer_fn_repl = jax.pmap(functools.partial(model.apply, train=False))
 
-  # Create optimizer and replicate it over all TPUs/GPUs
-  opt = momentum_clip.Optimizer(
-      dtype=config.optim_dtype,
-      grad_norm_clip=config.grad_norm_clip).create(params)
-
   initial_step = 1
-  opt, initial_step = flax_checkpoints.restore_checkpoint(
-      workdir, (opt, initial_step))
+  opt_state = tx.init(params)
+  params, opt_state, initial_step = flax_checkpoints.restore_checkpoint(
+      workdir, (params, opt_state, initial_step))
   logging.info('Will start/continue training at initial_step=%d', initial_step)
 
-  opt_repl = flax.jax_utils.replicate(opt)
+  params_repl, opt_state_repl = flax.jax_utils.replicate((params, opt_state))
 
   # Delete references to the objects that are not needed anymore
-  del opt
+  del opt_state
   del params
 
   # Prepare the learning-rate and pre-fetch it to device to avoid delays.
@@ -175,8 +181,8 @@ def train_and_evaluate(config: ml_collections.ConfigDict, workdir: str):
       input_pipeline.prefetch(ds_train, config.prefetch)):
 
     with jax.profiler.StepTraceAnnotation('train', step_num=step):
-      opt_repl, loss_repl, update_rng_repl = update_fn_repl(
-          opt_repl, flax.jax_utils.replicate(step), batch, update_rng_repl)
+      params_repl, opt_state_repl, loss_repl, update_rng_repl = update_fn_repl(
+          params_repl, opt_state_repl, batch, update_rng_repl)
 
     for hook in hooks:
       hook(step)
@@ -197,7 +203,7 @@ def train_and_evaluate(config: ml_collections.ConfigDict, workdir: str):
               train_loss=float(flax.jax_utils.unreplicate(loss_repl)),
               img_sec_core_train=img_sec_core_train))
       done = step / total_steps
-      logging.info(f'Step: {step}/{total_steps} {100*done:.1f}%, '  # pylint: disable=logging-format-interpolation
+      logging.info(f'Step: {step}/{total_steps} {100*done:.1f}%, '  # pylint: disable=logging-fstring-interpolation
                    f'img/sec/core: {img_sec_core_train:.1f}, '
                    f'ETA: {(time.time()-t0)/done*(1-done)/3600:.2f}h')
 
@@ -209,7 +215,7 @@ def train_and_evaluate(config: ml_collections.ConfigDict, workdir: str):
       lt0 = time.time()
       for test_batch in input_pipeline.prefetch(ds_test, config.prefetch):
         logits = infer_fn_repl(
-            dict(params=opt_repl.target), test_batch['image'])
+            dict(params=params_repl), test_batch['image'])
         accuracies.append(
             (np.argmax(logits,
                        axis=-1) == np.argmax(test_batch['label'],
@@ -221,7 +227,7 @@ def train_and_evaluate(config: ml_collections.ConfigDict, workdir: str):
       lt0 = time.time()
 
       lr = float(lr_fn(step))
-      logging.info(f'Step: {step} '  # pylint: disable=logging-format-interpolation
+      logging.info(f'Step: {step} '  # pylint: disable=logging-fstring-interpolation
                    f'Learning rate: {lr:.7f}, '
                    f'Test accuracy: {accuracy_test:0.5f}, '
                    f'img/sec/core: {img_sec_core_test:.1f}')
@@ -236,8 +242,9 @@ def train_and_evaluate(config: ml_collections.ConfigDict, workdir: str):
     if ((config.checkpoint_every and step % config.eval_every == 0) or
         step == total_steps):
       checkpoint_path = flax_checkpoints.save_checkpoint(
-          workdir, (flax.jax_utils.unreplicate(opt_repl), step), step)
+          workdir, (flax.jax_utils.unreplicate(params_repl),
+                    flax.jax_utils.unreplicate(opt_state_repl), step), step)
       logging.info('Stored checkpoint at step %d to "%s"', step,
                    checkpoint_path)
 
-  return flax.jax_utils.unreplicate(opt_repl)
+  return flax.jax_utils.unreplicate(params_repl)
