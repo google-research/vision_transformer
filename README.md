@@ -26,7 +26,7 @@ Table of contents:
 	- [MLP-Mixer](#mlp-mixer)
 		- [Available Mixer models](#available-mixer-models)
 		- [Expected Mixer results](#expected-mixer-results)
-  - [LiT models](#lit-models)
+	- [LiT models](#lit-models)
 	- [Running on cloud](#running-on-cloud)
 		- [Create a VM](#create-a-vm)
 		- [Setup VM](#setup-vm)
@@ -296,10 +296,15 @@ ImageNet-21k | Mixer-L/16 | cifar10 | 98.34%   | 10.0h           | [tensorboard.
 
 ## LiT models
 
-We have just published a post on the Google AI blog
-[LiT: adding language understanding to image models](http://ai.googleblog.com/2022/04/locked-image-tuning-adding-language.html)
-about our new CVPR paper "LiT: Zero-Shot Transfer with Locked-image text Tuning"
+For details, refer to the Google AI blog post
+[LiT: adding language understanding to image models](http://ai.googleblog.com/2022/04/locked-image-tuning-adding-language.html),
+or read the CVPR paper "LiT: Zero-Shot Transfer with Locked-image text Tuning"
 (https://arxiv.org/abs/2111.07991).
+
+We published a Transformer B/16-base model with an ImageNet zeroshot accuracy of
+72.1%, and a L/16-large model with an ImageNet zeroshot accuracy of 75.7%. For
+more details about these models, please refer to the
+[LiT model card](model_cards/lit.md).
 
 We provide a in-browser demo with small text encoders for interactive use (the
 smallest models should even run on a modern cell phone):
