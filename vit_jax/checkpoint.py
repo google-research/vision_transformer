@@ -135,6 +135,8 @@ def load(path):
   params = checkpoints.convert_pre_linen(recover_tree(keys, values))
   if isinstance(params, flax.core.FrozenDict):
     params = params.unfreeze()
+  if version.parse(flax.__version__) >= version.parse('0.3.6'):
+    params = _fix_groupnorm(params)
   return params
 
 
