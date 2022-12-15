@@ -119,7 +119,7 @@ class PreprocessTest(absltest.TestCase):
     dtypes_shapes = {k: (v.dtype, v.shape) for k, v in b.items()}
     np.testing.assert_equal(dtypes_shapes, {
         'image': (np.float32, (2, 4, 4, 3)),
-        'text': (np.object, (2,)),
+        'text': (object, (2,)),
         'tokens': (np.int32, (2, 3))
     })
 
@@ -152,7 +152,7 @@ class PreprocessTest(absltest.TestCase):
     dtypes_shapes = {k: (v.dtype, v.shape) for k, v in b.items()}
     np.testing.assert_equal(dtypes_shapes, {
         'image': (np.float32, (2, 4, 4, 3)),
-        'text': (np.object, (2,)),
+        'text': (object, (2,)),
         'tokens': (np.int32, (2, 3))
     })
 
