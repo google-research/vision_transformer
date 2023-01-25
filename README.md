@@ -319,6 +319,11 @@ Note that none of above models support multi-lingual inputs yet, but we're
 working on publishing such models and will update this repository once they
 become available.
 
+This repository only contains evaluation code for LiT models. You can find the
+training code in the `big_vision` repository:
+
+https://github.com/google-research/big_vision/tree/main/big_vision/configs/proj/image_text
+
 Expected zeroshot results from [`model_cards/lit.md`] (note that the zeroshot
 evaluation is slightly different from the simplified evaluation in the Colab):
 
