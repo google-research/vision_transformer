@@ -2,10 +2,10 @@ absl-py>=0.12.0
 chex>=0.0.7
 clu>=0.0.3
 einops>=0.3.0
-flax>=0.4.1
+flax>=0.6.5
 git+https://github.com/google/flaxformer
 
-jax[gpu]>=0.3.4
+jax[cuda11_cudnn82]>=0.4.2
 --find-links https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
 
 ml-collections>=0.1.0
