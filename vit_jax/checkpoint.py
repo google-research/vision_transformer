@@ -196,29 +196,46 @@ def load_pretrained(*, pretrained_path, init_params, model_config):
     if posemb.shape != posemb_new.shape:
       logging.info('load_pretrained: resized variant: %s to %s', posemb.shape,
                    posemb_new.shape)
-      ntok_new = posemb_new.shape[1]
-
-      if model_config.classifier == 'token':
-        posemb_tok, posemb_grid = posemb[:, :1], posemb[0, 1:]
-        ntok_new -= 1
-      else:
-        posemb_tok, posemb_grid = posemb[:, :0], posemb[0]
-
-      gs_old = int(np.sqrt(len(posemb_grid)))
-      gs_new = int(np.sqrt(ntok_new))
-      logging.info('load_pretrained: grid-size from %s to %s', gs_old, gs_new)
-      posemb_grid = posemb_grid.reshape(gs_old, gs_old, -1)
-
-      zoom = (gs_new / gs_old, gs_new / gs_old, 1)
-      posemb_grid = scipy.ndimage.zoom(posemb_grid, zoom, order=1)
-      posemb_grid = posemb_grid.reshape(1, gs_new * gs_new, -1)
-      posemb = jnp.array(np.concatenate([posemb_tok, posemb_grid], axis=1))
+      posemb = interpolate_posembed(
+          posemb, posemb_new.shape[1], model_config.classifier == 'token')
       restored_params['Transformer']['posembed_input']['pos_embedding'] = posemb
 
   if version.parse(flax.__version__) >= version.parse('0.3.6'):
     restored_params = _fix_groupnorm(restored_params)
 
   return flax.core.freeze(restored_params)
+
+
+def interpolate_posembed(posemb, num_tokens: int, has_class_token: bool):
+  """Interpolate given positional embedding parameters into a new shape.
+
+  Args:
+    posemb: positional embedding parameters.
+    num_tokens: desired number of tokens.
+    has_class_token: True if the positional embedding parameters contain a
+      class token.
+
+  Returns:
+    Positional embedding parameters interpolated into the new shape.
+  """
+  assert posemb.shape[0] == 1
+  if has_class_token:
+    posemb_tok, posemb_grid = posemb[:, :1], posemb[0, 1:]
+    num_tokens -= 1
+  else:
+    posemb_tok, posemb_grid = posemb[:, :0], posemb[0, 0:]
+
+  gs_old = int(np.sqrt(len(posemb_grid)))
+  gs_new = int(np.sqrt(num_tokens))
+  logging.info('interpolate_posembed: grid-size from %s to %s', gs_old, gs_new)
+  assert gs_old ** 2 == len(posemb_grid), f'{gs_old ** 2} != {len(posemb_grid)}'
+  assert gs_new ** 2 == num_tokens, f'{gs_new ** 2} != {num_tokens}'
+  posemb_grid = posemb_grid.reshape(gs_old, gs_old, -1)
+
+  zoom = (gs_new / gs_old, gs_new / gs_old, 1)
+  posemb_grid = scipy.ndimage.zoom(posemb_grid, zoom, order=1)
+  posemb_grid = posemb_grid.reshape(1, gs_new * gs_new, -1)
+  return jnp.array(np.concatenate([posemb_tok, posemb_grid], axis=1))
 
 
 def get_augreg_df(directory='gs://vit_models/augreg'):
