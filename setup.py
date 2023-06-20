@@ -27,6 +27,7 @@ except IOError:
 
 install_requires = [
     'absl-py',
+    'aqtp!=0.1.1',  # https://github.com/google/aqt/issues/196
     'clu',
     'einops',
     'flax',
