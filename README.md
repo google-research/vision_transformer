@@ -195,7 +195,7 @@ The model filenames (without the `.npz` extension) correspond to the
 - [`gs://vit_models/imagenet21k`] - Models pre-trained on ImageNet-21k.
 - [`gs://vit_models/imagenet21k+imagenet2012`] - Models pre-trained on
   ImageNet-21k and fine-tuned on ImageNet.
-- [`gs://vit_models/imagenet21k/augreg`] - Models pre-trained on ImageNet-21k,
+- [`gs://vit_models/augreg`] - Models pre-trained on ImageNet-21k,
   applying varying amounts of [AugReg]. Improved performance.
 - [`gs://vit_models/sam`] - Models pre-trained on ImageNet with [SAM].
 - [`gs://vit_models/gsam`] - Models pre-trained on ImageNet with [GSAM].
