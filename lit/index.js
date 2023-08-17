@@ -5122,7 +5122,7 @@
   (null !== (o4 = globalThis.litElementVersions) && void 0 !== o4 ? o4 : globalThis.litElementVersions = []).push("3.3.3");
 
   // src/lit_demo/constants.ts
-  var baseUrl = "https://figur.li/jax2tfjs";
+  var baseUrl = "https://google-research.github.io/vision_transformer/lit";
   var models = ["tiny", "small"];
   var getModelFileUrl = (name, relativePath) => `${baseUrl}/data/models/${name}/${relativePath}`;
   var getImagesInfoUrl = () => `${baseUrl}/data/images/info.json`;
@@ -42683,7 +42683,7 @@ return a / b;`;
     firstUpdated() {
       if (getBackend2() !== "webgl") {
         this.messageList.warning(
-          "Please activate WebGL. Running ML demos on CPU will drain your battery in no time..."
+          "Please activate WebGL. Running ML demos on CPU will drain your battery in no time... (AND the web page will be frozen while the answer is computed)"
         );
       }
     }
@@ -43046,6 +43046,7 @@ return a / b;`;
       super();
       this.loading = true;
       window.onerror = this.onglobalerror.bind(this);
+      window.onunhandledrejection = this.onunhandledrejection.bind(this);
       this.load();
     }
     onglobalerror(message, source, lineno) {
@@ -43053,6 +43054,12 @@ return a / b;`;
       source = source.substring(source.lastIndexOf("/") + 1);
       this.messageList.error(
         `<b>Javascript error</b> at ${source}:${lineno}<br><code>${message}</code>`,
+        { rawHtml: true }
+      );
+    }
+    onunhandledrejection(event) {
+      this.messageList.error(
+        `<b>Javascript error</b> unhandled rejection<br><code>${event.reason}</code>`,
         { rawHtml: true }
       );
     }
