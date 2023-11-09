@@ -14,6 +14,15 @@ The models were pre-trained on the [ImageNet](http://www.image-net.org/) and
 fine-tuning the released models in
 [JAX](https://jax.readthedocs.io)/[Flax](http://flax.readthedocs.io).
 
+The models from this codebase were originally trained in
+https://github.com/google-research/big_vision/
+where you can find more advanced code (e.g. multi-host training), as well as
+some of the original training scripts (e.g.
+[configs/vit_i21k.py](https://github.com/google-research/big_vision/blob/main/big_vision/configs/vit_i21k.py)
+for pre-training a ViT, or
+[configs/transfer.py](https://github.com/google-research/big_vision/blob/main/big_vision/configs/transfer.py)
+for transfering a model).
+
 Table of contents:
 
 - [Vision Transformer and MLP-Mixer Architectures](#vision-transformer-and-mlp-mixer-architectures)
@@ -516,7 +525,7 @@ In reverse chronological order:
 
 - 2021-07-02: Added the "When Vision Transformers Outperform
   ResNets..." paper
-  
+
 - 2021-07-02: Added [SAM](https://arxiv.org/abs/2010.01412)
   (Sharpness-Aware Minimization) optimized ViT and MLP-Mixer checkpoints.
 
