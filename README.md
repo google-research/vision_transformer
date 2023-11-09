@@ -77,7 +77,7 @@ amount of data to fine-tune on. For details see the
 
 ## Installation
 
-Make sure you have `Python>=3.6` installed on your machine.
+Make sure you have `Python>=3.10` installed on your machine.
 
 Install JAX and python dependencies by running:
 
