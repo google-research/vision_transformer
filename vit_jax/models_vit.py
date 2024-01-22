@@ -1,4 +1,4 @@
-# Copyright 2023 Google LLC.
+# Copyright 2024 Google LLC.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -66,6 +66,7 @@ class MlpBlock(nn.Module):
 
   mlp_dim: int
   dtype: Dtype = jnp.float32
+  param_dtype: Dtype = jnp.float32
   out_dim: Optional[int] = None
   dropout_rate: float = 0.1
   kernel_init: Callable[[PRNGKey, Shape, Dtype],
@@ -80,6 +81,7 @@ class MlpBlock(nn.Module):
     x = nn.Dense(
         features=self.mlp_dim,
         dtype=self.dtype,
+        param_dtype=self.param_dtype,
         kernel_init=self.kernel_init,
         bias_init=self.bias_init)(  # pytype: disable=wrong-arg-types
             inputs)
@@ -88,6 +90,7 @@ class MlpBlock(nn.Module):
     output = nn.Dense(
         features=actual_out_dim,
         dtype=self.dtype,
+        param_dtype=self.param_dtype,
         kernel_init=self.kernel_init,
         bias_init=self.bias_init)(  # pytype: disable=wrong-arg-types
             x)
