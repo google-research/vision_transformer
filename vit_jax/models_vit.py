@@ -42,6 +42,7 @@ class AddPositionEmbs(nn.Module):
   """
 
   posemb_init: Callable[[PRNGKey, Shape, Dtype], Array]
+  param_dtype: Dtype = jnp.float32
 
   @nn.compact
   def __call__(self, inputs):
@@ -57,7 +58,8 @@ class AddPositionEmbs(nn.Module):
     assert inputs.ndim == 3, ('Number of dimensions should be 3,'
                               ' but it is: %d' % inputs.ndim)
     pos_emb_shape = (1, inputs.shape[1], inputs.shape[2])
-    pe = self.param('pos_embedding', self.posemb_init, pos_emb_shape)
+    pe = self.param(
+        'pos_embedding', self.posemb_init, pos_emb_shape, self.param_dtype)
     return inputs + pe
 
 
