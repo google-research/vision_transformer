@@ -243,7 +243,7 @@ def get_data(*,
 def prefetch(dataset, n_prefetch):
   """Prefetches data to device and converts to numpy array."""
   ds_iter = iter(dataset)
-  ds_iter = map(lambda x: jax.tree_map(lambda t: np.asarray(memoryview(t)), x),
+  ds_iter = map(lambda x: jax.tree.map(lambda t: np.asarray(memoryview(t)), x),
                 ds_iter)
   if n_prefetch:
     ds_iter = flax.jax_utils.prefetch_to_device(ds_iter, n_prefetch)

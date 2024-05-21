@@ -79,7 +79,7 @@ class ModelsTest(parameterized.TestCase):
         self.assertEqual((2, 196, 1000), outputs.shape)
       else:
         self.assertEqual((2, 1000), outputs.shape)
-    param_count = sum(p.size for p in jax.tree_flatten(variables)[0])
+    param_count = sum(p.size for p in jax.tree.flatten(variables)[0])
     self.assertEqual(
         size, param_count,
         f'Expected {name} to have {size} params, found {param_count}.')
