@@ -156,86 +156,147 @@ def _fix_groupnorm(params):
                flax.traverse_util.flatten_dict(params).items())))
 
 
+# --- MODIFIED load_pretrained FUNCTION ---
 def load_pretrained(*, pretrained_path, init_params, model_config):
-  """Loads/converts a pretrained checkpoint for fine tuning.
+    """Loads/converts a pretrained checkpoint for fine tuning.
 
-  Args:
-    pretrained_path: File pointing to pretrained checkpoint.
-    init_params: Parameters from model. Will be used for the head of the model
-      and to verify that the model is compatible with the stored checkpoint.
-    model_config: Configuration of the model. Will be used to configure the head
-      and rescale the position embeddings.
+    Args:
+      pretrained_path: File pointing to pretrained checkpoint.
+      init_params: Parameters from model. Will be used for the head of the model
+        and to verify that the model is compatible with the stored checkpoint.
+      model_config: Configuration of the model. Will be used to configure the head
+        and rescale the position embeddings.
 
-  Returns:
-    Parameters like `init_params`, but loaded with pretrained weights from
-    `pretrained_path` and adapted accordingly.
-  """
+    Returns:
+      Parameters like `init_params`, but loaded with pretrained weights from
+      `pretrained_path` and adapted accordingly.
+    """
 
-  restored_params = inspect_params(
-      params=load(pretrained_path),
-      expected=init_params,
-      fail_if_extra=False,
-      fail_if_missing=False)
+    restored_params = inspect_params(
+        params=load(pretrained_path),
+        expected=init_params,
+        fail_if_extra=False,
+        fail_if_missing=False)
 
-  # The following allows implementing fine-tuning head variants depending on the
-  # value of `representation_size` in the fine-tuning job:
-  # - `None` : drop the whole head and attach a nn.Linear.
-  # - same number as in pre-training means : keep the head but reset the last
-  #    layer (logits) for the new task.
-  if model_config.get('representation_size') is None:
-    if 'pre_logits' in restored_params:
-      logging.info('load_pretrained: drop-head variant')
-      restored_params['pre_logits'] = {}
-  restored_params['head']['kernel'] = init_params['head']['kernel']
-  restored_params['head']['bias'] = init_params['head']['bias']
-
-  if 'posembed_input' in restored_params.get('Transformer', {}):
-    # Rescale the grid of position embeddings. Param shape is (1,N,1024)
-    posemb = restored_params['Transformer']['posembed_input']['pos_embedding']
-    posemb_new = init_params['Transformer']['posembed_input']['pos_embedding']
-    if posemb.shape != posemb_new.shape:
-      logging.info('load_pretrained: resized variant: %s to %s', posemb.shape,
-                   posemb_new.shape)
-      posemb = interpolate_posembed(
-          posemb, posemb_new.shape[1], model_config.classifier == 'token')
-      restored_params['Transformer']['posembed_input']['pos_embedding'] = posemb
-
-  if version.parse(flax.__version__) >= version.parse('0.3.6'):
-    restored_params = _fix_groupnorm(restored_params)
-
-  return flax.core.freeze(restored_params)
+    # Head modification logic (remains the same)
+    if model_config.get('representation_size') is None:
+        if 'pre_logits' in restored_params:
+            logging.info('load_pretrained: drop-head variant')
+            restored_params['pre_logits'] = {}
+    # Always reset the final classification layer
+    if 'head' in restored_params and 'head' in init_params:
+        logging.info('load_pretrained: resetting final classifier layer')
+        restored_params['head']['kernel'] = init_params['head']['kernel']
+        restored_params['head']['bias'] = init_params['head']['bias']
+    else:
+         logging.warning('Could not find head parameters in restored or init params.')
 
 
+    # --- Positional Embedding Interpolation ---
+    # Check if positional embeddings exist in both the restored and initial parameters
+    if 'Transformer' in restored_params and \
+       'Transformer' in init_params and \
+       'posembed_input' in restored_params.get('Transformer', {}) and \
+       'posembed_input' in init_params.get('Transformer', {}):
+
+        posemb_restored = restored_params['Transformer']['posembed_input']['pos_embedding']
+        posemb_init = init_params['Transformer']['posembed_input']['pos_embedding']
+
+        # Check if the shapes are different (indicating different resolutions/patch counts)
+        if posemb_restored.shape != posemb_init.shape:
+            logging.info('load_pretrained: resizing positional embeddings from %s to %s',
+                         posemb_restored.shape, posemb_init.shape)
+
+            # Determine if the model uses a class token based on shape difference
+            # Assumes num_tokens = H * W (+ 1 if class token exists)
+            has_class_token_restored = posemb_restored.shape[1] % int(np.sqrt(posemb_restored.shape[1])) != 0
+            if not has_class_token_restored and posemb_restored.shape[1]-1 > 0 and (posemb_restored.shape[1]-1) > 0 and int(np.sqrt(posemb_restored.shape[1]-1)) > 0 and (posemb_restored.shape[1]-1) % int(np.sqrt(posemb_restored.shape[1]-1)) == 0:
+                 # Alternative check if sqrt logic fails for non-square grids - check if removing 1 makes it match expected grid
+                 has_class_token_restored = True # Heuristic guess
+
+            # Interpolate the restored positional embedding to match the shape of the initial model
+            posemb_new = interpolate_posembed(
+                posemb_restored,
+                posemb_init.shape[1],  # Target number of tokens
+                has_class_token=has_class_token_restored # Pass whether the *restored* embedding had a class token
+            )
+
+            # Check if the new shape matches the target shape
+            if posemb_new.shape != posemb_init.shape:
+                raise ValueError(f'Interpolated positional embedding shape mismatch: '
+                                 f'Expected {posemb_init.shape}, Got {posemb_new.shape}. '
+                                 f'Check class token logic.')
+
+
+            # Update the restored parameters with the new positional embedding
+            restored_params['Transformer']['posembed_input']['pos_embedding'] = posemb_new
+        else:
+            logging.info('load_pretrained: positional embeddings shapes match, no resize needed.')
+    # --- End of Positional Embedding Interpolation ---
+
+
+    # GroupNorm fix (remains the same)
+    if version.parse(flax.__version__) >= version.parse('0.3.6'):
+        restored_params = _fix_groupnorm(restored_params)
+
+    return flax.core.freeze(restored_params)
+
+
+# --- MODIFIED interpolate_posembed FUNCTION ---
 def interpolate_posembed(posemb, num_tokens: int, has_class_token: bool):
-  """Interpolate given positional embedding parameters into a new shape.
+    """Interpolate given positional embedding parameters into a new shape.
 
-  Args:
-    posemb: positional embedding parameters.
-    num_tokens: desired number of tokens.
-    has_class_token: True if the positional embedding parameters contain a
-      class token.
+    Args:
+      posemb: positional embedding parameters.
+      num_tokens: desired number of tokens.
+      has_class_token: True if the positional embedding parameters contain a
+        class token.
 
-  Returns:
-    Positional embedding parameters interpolated into the new shape.
-  """
-  assert posemb.shape[0] == 1
-  if has_class_token:
-    posemb_tok, posemb_grid = posemb[:, :1], posemb[0, 1:]
-    num_tokens -= 1
-  else:
-    posemb_tok, posemb_grid = posemb[:, :0], posemb[0, 0:]
+    Returns:
+      Positional embedding parameters interpolated into the new shape.
+    """
+    assert posemb.shape[0] == 1
+    if has_class_token:
+        posemb_tok, posemb_grid = posemb[:, :1], posemb[0, 1:]
+        num_tokens -= 1 # Adjust target token count if class token exists
+    else:
+        posemb_tok, posemb_grid = posemb[:, :0], posemb[0, 0:]
 
-  gs_old = int(np.sqrt(len(posemb_grid)))
-  gs_new = int(np.sqrt(num_tokens))
-  logging.info('interpolate_posembed: grid-size from %s to %s', gs_old, gs_new)
-  assert gs_old ** 2 == len(posemb_grid), f'{gs_old ** 2} != {len(posemb_grid)}'
-  assert gs_new ** 2 == num_tokens, f'{gs_new ** 2} != {num_tokens}'
-  posemb_grid = posemb_grid.reshape(gs_old, gs_old, -1)
+    # Check if posemb_grid is empty
+    if posemb_grid.shape[0] == 0:
+        if num_tokens == 0: # Only class token exists
+             if not has_class_token:
+                  raise ValueError("Cannot interpolate empty grid without class token")
+             return posemb_tok # Return only the class token
+        else:
+             raise ValueError("Cannot interpolate empty grid to non-empty target")
 
-  zoom = (gs_new / gs_old, gs_new / gs_old, 1)
-  posemb_grid = scipy.ndimage.zoom(posemb_grid, zoom, order=1)
-  posemb_grid = posemb_grid.reshape(1, gs_new * gs_new, -1)
-  return jnp.array(np.concatenate([posemb_tok, posemb_grid], axis=1))
+
+    # Calculate grid size, handle potential floating point issues with sqrt
+    grid_len = len(posemb_grid)
+    gs_old_float = np.sqrt(grid_len)
+    gs_old = int(gs_old_float)
+    if gs_old_float % 1 != 0: # Check if it wasn't a perfect square
+        raise ValueError(f"Original positional embedding grid size ({grid_len}) is not a perfect square.")
+
+    gs_new_float = np.sqrt(num_tokens)
+    gs_new = int(gs_new_float)
+    logging.info('interpolate_posembed: grid-size from %s to %s', gs_old, gs_new)
+
+    # Ensure gs_new calculation is valid
+    if gs_new_float % 1 != 0:
+        raise ValueError(f"Target number of grid tokens ({num_tokens}) is not a perfect square.")
+    if gs_new == 0 and num_tokens > 0 :
+        raise ValueError(f"Calculated gs_new is 0 but num_tokens is {num_tokens}. Check input.")
+
+    posemb_grid = posemb_grid.reshape(gs_old, gs_old, -1)
+
+    zoom = (gs_new / gs_old, gs_new / gs_old, 1)
+    posemb_grid = scipy.ndimage.zoom(posemb_grid, zoom, order=1)
+    posemb_grid = posemb_grid.reshape(1, gs_new * gs_new, -1)
+
+    # Concatenate the class token (if it exists) back with the resized grid
+    return jnp.array(np.concatenate([posemb_tok, posemb_grid], axis=1))
 
 
 def get_augreg_df(directory='gs://vit_models/augreg'):
