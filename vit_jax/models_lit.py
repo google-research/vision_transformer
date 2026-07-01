@@ -1,4 +1,4 @@
-# Copyright 2025 Google LLC.
+# Copyright 2026 Google LLC.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -216,9 +216,9 @@ class LitModel(nn.Module):
           'text_transformer': TextTransformer,
       }[self.text_model]
       text_model = model_class(
-          **{
+          **{  # pyrefly: ignore[bad-argument-type]
               'num_classes': out_dims[1],
-              **(self.text or {})
+              **(self.text or {})  # pyrefly: ignore[invalid-argument]
           }, name='txt')
 
       ztxt, out_txt = text_model(tokens)
@@ -231,8 +231,8 @@ class LitModel(nn.Module):
 
     if images is not None:
       image_model = models_vit.VisionTransformer(
-          **{
-              **self.image,
+          **{  # pyrefly: ignore[bad-argument-type]
+              **self.image,  # pyrefly: ignore[invalid-argument]
               'num_classes': out_dims[0],
           }, name='img')  # pylint: disable=not-a-mapping
       zimg = image_model(images, train=False)

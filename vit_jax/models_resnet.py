@@ -1,4 +1,4 @@
-# Copyright 2025 Google LLC.
+# Copyright 2026 Google LLC.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ def weight_standardize(w, axis, eps):
 class StdConv(nn.Conv):
   """Convolution with weight standardization."""
 
-  def param(self,
+  def param(self,  # pyrefly: ignore[bad-override]
             name: str,
             init_fn: Callable[..., T],
             *init_args) -> T:
@@ -101,6 +101,6 @@ class ResNetStage(nn.Module):
   @nn.compact
   def __call__(self, x):
     x = ResidualUnit(self.nout, strides=self.first_stride, name='unit1')(x)
-    for i in range(1, self.block_size):
+    for i in range(1, self.block_size):  # pyrefly: ignore[bad-argument-type]
       x = ResidualUnit(self.nout, strides=(1, 1), name=f'unit{i + 1}')(x)
     return x
