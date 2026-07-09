@@ -592,3 +592,15 @@ Note: This repository was forked and modified from
 [`gs://mixer_models/sam`]: https://console.cloud.google.com/storage/mixer_models/sam/
 [`gs://vit_models/gsam`]: https://console.cloud.google.com/storage/browser/vit_models/gsam/
 [`gs://mixer_models/gsam`]: https://console.cloud.google.com/storage/mixer_models/gsam/
+
+
+## Contributing
+
+We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on
+how to report bugs, suggest features, and submit pull requests.
+
+By participating, you agree to our [Code of Conduct](CODE_OF_CONDUCT.md).
+
+---
+
+*[Mukller](https://github.com/Mukller)*
