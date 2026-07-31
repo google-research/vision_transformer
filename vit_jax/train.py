@@ -34,6 +34,12 @@ from vit_jax import models
 from vit_jax import utils
 
 
+def _should_checkpoint(config, step, total_steps):
+  """Returns whether a checkpoint should be stored at the current step."""
+  return (step == total_steps or
+          bool(config.checkpoint_every and step % config.checkpoint_every == 0))
+
+
 def make_update_fn(*, apply_fn, accum_steps, tx):
   """Returns update step for data parallel training."""
 
@@ -239,8 +245,7 @@ def train_and_evaluate(config: ml_collections.ConfigDict, workdir: str):
               img_sec_core_test=img_sec_core_test))
 
     # Store checkpoint.
-    if ((config.checkpoint_every and step % config.checkpoint_every == 0) or
-        step == total_steps):
+    if _should_checkpoint(config, step, total_steps):
       checkpoint_path = flax_checkpoints.save_checkpoint(
           workdir, (flax.jax_utils.unreplicate(params_repl),
                     flax.jax_utils.unreplicate(opt_state_repl), step), step)
