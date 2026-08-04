@@ -212,7 +212,7 @@ def train_and_evaluate(config: ml_collections.ConfigDict, workdir: str):
         (step == total_steps)):
 
       accuracies = []
-      lt0 = time.time()
+      tt0 = time.time()
       for test_batch in input_pipeline.prefetch(ds_test, config.prefetch):
         logits = infer_fn_repl(
             dict(params=params_repl), test_batch['image'])
@@ -223,8 +223,7 @@ def train_and_evaluate(config: ml_collections.ConfigDict, workdir: str):
       accuracy_test = np.mean(accuracies)
       img_sec_core_test = (
           config.batch_eval * ds_test.cardinality().numpy() /
-          (time.time() - lt0) / jax.device_count())
-      lt0 = time.time()
+          (time.time() - tt0) / jax.device_count())
 
       lr = float(lr_fn(step))
       logging.info(f'Step: {step} '  # pylint: disable=logging-fstring-interpolation
@@ -237,14 +236,17 @@ def train_and_evaluate(config: ml_collections.ConfigDict, workdir: str):
               accuracy_test=accuracy_test,
               lr=lr,
               img_sec_core_test=img_sec_core_test))
+      lt0 += time.time() - tt0
 
     # Store checkpoint.
     if ((config.checkpoint_every and step % config.eval_every == 0) or
         step == total_steps):
+      tt0 = time.time()
       checkpoint_path = flax_checkpoints.save_checkpoint(
           workdir, (flax.jax_utils.unreplicate(params_repl),
                     flax.jax_utils.unreplicate(opt_state_repl), step), step)
       logging.info('Stored checkpoint at step %d to "%s"', step,
                    checkpoint_path)
+      lt0 += time.time() - tt0
 
   return flax.jax_utils.unreplicate(params_repl)
