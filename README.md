@@ -98,7 +98,7 @@ pip install -r vit_jax/requirements.txt
 pip install -r vit_jax/requirements-tpu.txt
 ```
 
-For newer versions of [JAX](https://github.com/google/jax), follow the instructions
+For newer versions of [JAX](https://github.com/jax-ml/jax), follow the instructions
 provided in the corresponding repository linked here. Note that installation
 instructions for CPU, GPU and TPU differs slightly.
 
