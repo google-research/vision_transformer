@@ -94,7 +94,7 @@ class ResidualUnit(nn.Module):
 class ResNetStage(nn.Module):
   """A ResNet stage."""
 
-  block_size: Sequence[int]
+  block_size: int
   nout: int
   first_stride: Sequence[int]
 
