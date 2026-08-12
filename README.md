@@ -21,7 +21,7 @@ some of the original training scripts (e.g.
 [configs/vit_i21k.py](https://github.com/google-research/big_vision/blob/main/big_vision/configs/vit_i21k.py)
 for pre-training a ViT, or
 [configs/transfer.py](https://github.com/google-research/big_vision/blob/main/big_vision/configs/transfer.py)
-for transfering a model).
+for transferring a model).
 
 Table of contents:
 
