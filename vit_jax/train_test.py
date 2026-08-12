@@ -37,6 +37,21 @@ JPG_BLACK_1PX = (b'\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x00\x00\x01\x00\x01\
 class TrainTest(parameterized.TestCase):
 
   @parameterized.named_parameters(
+      ('configured_interval', 6, 10, 3, True),
+      ('between_intervals', 4, 10, 3, False),
+      ('disabled', 4, 10, 0, False),
+      ('final_step_when_disabled', 10, 10, 0, True),
+  )
+  def test_should_checkpoint(self, step, total_steps, checkpoint_every,
+                             expected):
+    config = ml_collections.ConfigDict({
+        'checkpoint_every': checkpoint_every,
+        'eval_every': 2,
+    })
+    self.assertEqual(
+        train._should_checkpoint(config, step, total_steps), expected)
+
+  @parameterized.named_parameters(
       ('tfds', 'tfds'),
       ('directory', 'directory'),
   )
