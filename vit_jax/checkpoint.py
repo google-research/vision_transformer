@@ -61,7 +61,7 @@ def inspect_params(*,
   empty_keys = set()
   for k in missing_keys:
     if isinstance(expected_flat[k], dict) and not expected_flat[k]:
-      params[k] = {}
+      params_flat[k] = {}
       empty_keys.add(k)
   missing_keys -= empty_keys
 
@@ -77,7 +77,7 @@ def inspect_params(*,
                      f'Extra params in checkpoint: {extra_keys}.\n'
                      f'Restored params from checkpoint: {params_flat.keys()}.\n'
                      f'Expected params from code: {expected_flat.keys()}.')
-  return params
+  return recover_tree(params_flat.keys(), params_flat.values())
 
 
 def recover_tree(keys, values):
