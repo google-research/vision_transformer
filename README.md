@@ -1,5 +1,9 @@
 # Vision Transformer and MLP-Mixer Architectures
 
+<p align="center">
+  <b>English</b> · <a href="https://github.com/google-research/vision_transformer/blob/main/README.zh.md">简体中文</a>
+</p>
+
 In this repository we release models from the papers
 
 - [An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale](https://arxiv.org/abs/2010.11929)
