@@ -36,6 +36,6 @@ def get_config():
   # Image size (width=height).
   config.image_size = 0
 
-  config.train = 'inference_time'
+  config.trainer = 'inference_time'
 
   return config
