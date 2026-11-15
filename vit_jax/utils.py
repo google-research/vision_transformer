@@ -98,24 +98,36 @@ def create_learning_rate_schedule(total_steps,
   return step_fn
 
 
-def accumulate_gradient(loss_and_grad_fn, params, images, labels, accum_steps):
-  """Accumulate gradient over multiple steps to save on memory."""
+def accumulate_gradient(loss_and_grad_fn, params, images, labels, accum_steps,
+                        rng=None):
+  """Accumulate gradient over multiple steps to save on memory.
+
+  If `rng` is given, it is passed as an extra last argument to
+  `loss_and_grad_fn`, folded with the micro-batch index so that each
+  micro-batch gets a different key (e.g. different dropout masks).
+  """
+
+  def rng_args(i):
+    return () if rng is None else (jax.random.fold_in(rng, i),)
+
   if accum_steps and accum_steps > 1:
     assert images.shape[0] % accum_steps == 0, (
         f'Bad accum_steps {accum_steps} for batch size {images.shape[0]}')
     step_size = images.shape[0] // accum_steps
-    l, g = loss_and_grad_fn(params, images[:step_size], labels[:step_size])
+    l, g = loss_and_grad_fn(params, images[:step_size], labels[:step_size],
+                            *rng_args(0))
 
     def acc_grad_and_loss(i, l_and_g):
       imgs = jax.lax.dynamic_slice(images, (i * step_size, 0, 0, 0),
                                    (step_size,) + images.shape[1:])
       lbls = jax.lax.dynamic_slice(labels, (i * step_size, 0),
                                    (step_size, labels.shape[1]))
-      li, gi = loss_and_grad_fn(params, imgs, lbls)
+      li, gi = loss_and_grad_fn(params, imgs, lbls, *rng_args(i))
       l, g = l_and_g
       return (l + li, jax.tree.map(lambda x, y: x + y, g, gi))
 
     l, g = jax.lax.fori_loop(1, accum_steps, acc_grad_and_loss, (l, g))
     return jax.tree.map(lambda x: x / accum_steps, (l, g))
   else:
-    return loss_and_grad_fn(params, images, labels)
+    return loss_and_grad_fn(params, images, labels,
+                            *(() if rng is None else (rng,)))

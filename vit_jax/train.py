@@ -49,17 +49,17 @@ def make_update_fn(*, apply_fn, accum_steps, tx):
       logp = jax.nn.log_softmax(logits)
       return -jnp.mean(jnp.sum(logp * labels, axis=1))
 
-    def loss_fn(params, images, labels):
+    def loss_fn(params, images, labels, rng):
       logits = apply_fn(
           dict(params=params),
-          rngs=dict(dropout=dropout_rng),
+          rngs=dict(dropout=rng),
           inputs=images,
           train=True)
       return cross_entropy_loss(logits=logits, labels=labels)
 
     l, g = utils.accumulate_gradient(
         jax.value_and_grad(loss_fn), params, batch['image'], batch['label'],
-        accum_steps)
+        accum_steps, dropout_rng)
     g = jax.tree.map(lambda x: jax.lax.pmean(x, axis_name='batch'), g)
     updates, opt_state = tx.update(g, opt_state)
     params = optax.apply_updates(params, updates)
