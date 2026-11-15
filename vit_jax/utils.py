@@ -79,7 +79,9 @@ def create_learning_rate_schedule(total_steps,
     """Step to learning rate function."""
     lr = base
 
-    progress = (step - warmup_steps) / float(total_steps - warmup_steps)
+    # Guard against total_steps <= warmup_steps (e.g. very short runs), which
+    # would otherwise divide by zero or flip the sign and give progress == 1.
+    progress = (step - warmup_steps) / float(max(total_steps - warmup_steps, 1))
     progress = jnp.clip(progress, 0.0, 1.0)
     if decay_type == 'linear':
       lr = linear_end + (lr - linear_end) * (1.0 - progress)
